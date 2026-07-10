@@ -45,3 +45,5 @@ analysis/*token*
 *.tmp
 *.swp
 *~
+/analysis/
+/reference/
