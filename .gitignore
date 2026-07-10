@@ -1,0 +1,47 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# macOS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Proprietary or device-derived binaries
+*.bin
+*.apk
+*.aab
+*.dex
+*.so
+*.zip
+*.7z
+*.tar
+*.tar.gz
+
+# Local research inputs and generated artifacts
+vendor/
+downloads/
+release/
+dist/
+build/
+analysis/qring-jadx/
+analysis/colmi-client-captures/
+analysis/dfu-protocol/extracted/
+analysis/*private*
+analysis/*token*
+
+# Local logs and captures
+*.log
+*.pcap
+*.pcapng
+*.btsnoop
+
+# Temporary files
+*.tmp
+*.swp
+*~
