@@ -1,0 +1,27 @@
+{
+  "destination": "build/ry02-bluex-sdk3-ringcli-workspace",
+  "failures": [],
+  "project_paths_checked": 102,
+  "scatter_exists": true,
+  "scatter_file": "/Users/piyushdaiya/Documents/projects/colmi-r02-firmware/build/ry02-bluex-sdk3-ringcli-workspace/examples/demo/ble_custom_profile/config/user_link.txt",
+  "schema": "ry02.bluex-sdk3-workspace-materialization.v2",
+  "source": "reference/bluex-sdk3-v3.3.8-20250117",
+  "source_git_head": "0457807e35e2383f83ffddf9a22b81d44599dc57",
+  "source_key_manifest_after": {
+    "components/bluex/ble/controller/rom_syms_armcc.txt": "6de9927564639177e9876ef37b40e2521d01c53972787171fc0f6c36defc8c25",
+    "examples/demo/ble_custom_profile/code/app.c": "bae5ec33fb593329089ed91cdf10a65a6293dda7385752810974b13a76f0e9b0",
+    "examples/demo/ble_custom_profile/code/startup_apollo00_ble.s": "612aba7cbb33d47087cd1899e7c59b9ebe2d8237f0e203018179d9476b50022c",
+    "examples/demo/ble_custom_profile/config/user_link.txt": "e3d07ac21972e62e911f7db05f6dc4df6edaa7687d214b4ec8630dd269fd8e5d",
+    "examples/demo/ble_custom_profile/mdk/ble_custom_profile.uvprojx": "687c0068c0493f1bfc1581b88f48ad7c655b4f9da95fae00ce667fbc16bc06be"
+  },
+  "source_key_manifest_before": {
+    "components/bluex/ble/controller/rom_syms_armcc.txt": "6de9927564639177e9876ef37b40e2521d01c53972787171fc0f6c36defc8c25",
+    "examples/demo/ble_custom_profile/code/app.c": "bae5ec33fb593329089ed91cdf10a65a6293dda7385752810974b13a76f0e9b0",
+    "examples/demo/ble_custom_profile/code/startup_apollo00_ble.s": "612aba7cbb33d47087cd1899e7c59b9ebe2d8237f0e203018179d9476b50022c",
+    "examples/demo/ble_custom_profile/config/user_link.txt": "e3d07ac21972e62e911f7db05f6dc4df6edaa7687d214b4ec8630dd269fd8e5d",
+    "examples/demo/ble_custom_profile/mdk/ble_custom_profile.uvprojx": "687c0068c0493f1bfc1581b88f48ad7c655b4f9da95fae00ce667fbc16bc06be"
+  },
+  "status": "PASS",
+  "tool_revision": "r2",
+  "unresolved_project_paths": []
+}

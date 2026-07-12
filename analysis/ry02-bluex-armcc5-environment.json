@@ -1,0 +1,28 @@
+{
+  "failures": [],
+  "host": {
+    "machine": "arm64",
+    "system": "Darwin"
+  },
+  "project": "build/ry02-bluex-sdk3-ringcli-workspace/examples/demo/ble_custom_profile/mdk/ble_custom_profile.uvprojx",
+  "project_settings": {
+    "compiler": "5060960::V5.06 update 7 (build 960)::.\\ARMCC",
+    "create_hex": "0",
+    "output_name": "ry02_ringcli_adapter_buildonly",
+    "scatter": "..\\config\\user_link.txt",
+    "toolset": "ARM-ADS"
+  },
+  "schema": "ry02.bluex-armcc5-environment.v1",
+  "status": "TOOLCHAIN_UNAVAILABLE",
+  "tool_revision": "r2",
+  "toolchain_complete": false,
+  "tools": {
+    "armasm": null,
+    "armcc": null,
+    "armlink": null,
+    "fromelf": null,
+    "uv4": null
+  },
+  "versions": {},
+  "workspace": "build/ry02-bluex-sdk3-ringcli-workspace"
+}

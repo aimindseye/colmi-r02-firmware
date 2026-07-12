@@ -1,0 +1,26 @@
+RY02 BLUEX ARMCC5 ENVIRONMENT INSPECTION
+tool revision: r2
+host: Darwin arm64
+workspace: build/ry02-bluex-sdk3-ringcli-workspace
+project: build/ry02-bluex-sdk3-ringcli-workspace/examples/demo/ble_custom_profile/mdk/ble_custom_profile.uvprojx
+
+project settings:
+  toolset: ARM-ADS
+  compiler: 5060960::V5.06 update 7 (build 960)::.\ARMCC
+  output_name: ry02_ringcli_adapter_buildonly
+  create_hex: 0
+  scatter: ..\config\user_link.txt
+
+toolchain:
+  UV4: not found
+  armcc: not found
+  armasm: not found
+  armlink: not found
+  fromelf: not found
+
+workspace failures: 0
+ARMCC5 toolchain complete: False
+compiler invoked: no
+OTA packaging: none
+device action: none
+environment status: TOOLCHAIN_UNAVAILABLE

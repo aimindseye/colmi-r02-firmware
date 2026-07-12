@@ -1,0 +1,21 @@
+RY02 BLUEX SDK3 COMPILE-WORKSPACE MATERIALIZATION
+tool revision: r2
+source SDK: reference/bluex-sdk3-v3.3.8-20250117
+source git HEAD: 0457807e35e2383f83ffddf9a22b81d44599dc57
+destination: build/ry02-bluex-sdk3-ringcli-workspace
+complete SDK tree copied: yes
+project-relative paths preserved: yes
+source SDK modified: no
+generic linker retained: yes
+HEX generation enabled: no
+compiler invoked: no
+OTA packaging invoked: no
+device action: none
+
+project FilePath entries checked: 102
+unresolved project paths: 0
+scatter file: /Users/piyushdaiya/Documents/projects/colmi-r02-firmware/build/ry02-bluex-sdk3-ringcli-workspace/examples/demo/ble_custom_profile/config/user_link.txt
+scatter exists: True
+
+validation failures: 0
+workspace status: PASS

@@ -1,0 +1,10 @@
+RY02 BLUEX SDK3 ADAPTER MATERIALIZATION
+source: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile
+destination: build/ry02-bluex-sdk3-ringcli-adapter
+source SDK modified: no
+generic linker retained: yes
+OTA packaging invoked: no
+device action: none
+
+validation failures: 0
+materialization status: PASS
