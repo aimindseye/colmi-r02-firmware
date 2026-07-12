@@ -1,47 +1,91 @@
 address,kind,label,confidence,category,evidence,notes
-0x0000029C,code,event_public_notification_dispatcher_candidate,Medium,ROM/platform,ry02-v38-time-d3-persistence-xrefs.txt; direct-event-caller reports,Two visible arguments r0/r1; six direct callers in .38; not proven to be bx_public
+0x0000029C,code,publish_event2_candidate,Medium-high,ROM/platform,ry02-v38-low-29c-caller-family.txt; ry02-v38-accepted-baseline-verification.txt,Returning two-argument dispatcher; r0 behaves as source/category and r1 as event ID; D0/D3/D4/D5 caller family; not proven to be bx_public or a synchronous reset primitive
 0x00004926,code,generic_rom_api_service_dispatcher_candidate,Medium,ROM/platform,ry02-v38-low-4926-wrapper-callers.txt,182 direct calls in generated veneer block; D0-D3 wrappers themselves unreferenced
 0x00005AA8,code,generic_shared_rom_service_candidate,Low,ROM/platform,ry02-v38-d3-d5-publisher-family.txt,101 direct calls with varied argument shapes; exact service unknown
+0x000081A0,code,flash_erase_selector_address_candidate,Medium-high,flash ROM,ry02-v38-flash-primitive-semantics.txt; ry02-v38-accepted-baseline-verification.txt,"Proven ABI (selector,address), selectors 2/4; public erase_t direct mapping rejected because selector2 erases known 4-KiB cfg sector; exact ROM symbol unresolved"
+0x00008600,code,flash_program_abi_match_candidate,High for semantics; exact symbol unresolved,flash ROM,ry02-v38-flash-primitive-semantics.txt; ry02-v38-accepted-baseline-verification.txt,"All 6 .38/.33 callers use destination,length,source; behavior and public source strongly support flash programming; no compatible address map available"
+0x00008916,code,flash_operation_end_candidate,Medium-high,flash ROM,ry02-v38-flash-primitive-semantics.txt; ry02-v38-accepted-baseline-verification.txt,Ends erase/program bracket with saved byte state; broader flash/XIP state restore likely; not direct zero-arg flash_cache_enable ABI
+0x0000893C,code,flash_operation_begin_candidate,Medium-high,flash ROM,ry02-v38-flash-primitive-semantics.txt; ry02-v38-accepted-baseline-verification.txt,Begins erase/program bracket with address and writable byte-state pointer; broader flash/XIP state guard likely; not direct zero-arg flash_cache_disable ABI
 0x00013634,code,timer_work_create_register_candidate,Medium-high,ROM/platform,timer-entrypoint disassembly,Registration-shaped arguments including descriptor and callback pointer
 0x00013670,code,timer_work_start_enable_candidate,Medium,ROM/platform,timer-family caller analysis,Appears after create/register in related paths
 0x00013694,code,timer_work_restart_update_timeout_candidate,High,ROM/platform,timer-entrypoint disassembly; command-5 handler analysis,"Called as object,delay; command 5 passes 1000 ms"
 0x000136BC,code,timer_work_stop_cancel_candidate,Medium,ROM/platform,timer-family caller analysis,Working label only
 0x00024000,flash,active_application_physical_base,High,image-layout,container and inner-header analysis,Active image physical base
 0x00024400,flash,active_executable_body_physical_base,High,image-layout,container and inner-header analysis,Inner header size is 0x400
+0x0003F7A8,code,memory_compare_candidate,Medium-high,runtime helper,ry02-v38-source1-d0-subsystem-provenance-r2.txt,12 direct callers; D0 callers test zero for equality; size distribution pending
+0x0003F848,code,memory_copy_candidate,Medium-high,runtime helper,ry02-v38-source1-d0-subsystem-provenance-r2.txt,93 direct callers with varied uses; 13 locally proven six-byte calls; size distribution pending
 0x0004D000,flash,staging_physical_base,High,OTA staging,command-3 handler analysis,Inner image staged here after stripping outer 0x50-byte header
 0x00070000,flash,next_likely_partition_boundary,Medium,image-layout,staging-range analysis,Likely boundary inferred from staged image extent
+0x00200120,ram,shared_callback_or_service_object_candidate,Medium-high,source1-D0,ry02-v38-source1-d0-subsystem-provenance-r2.txt,7 raw occurrences and 9 literal-load refs across unrelated code; indirect-call service/callback object
+0x00208449,ram,configuration_byte_object_candidate,Medium,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,Reachable literal in source1 D0 configuration producer
+0x00208670,ram,configuration_primary_object_candidate,Medium,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,Reachable literal in source1 D0 configuration producer
+0x00208690,ram,type33_len6_value_state_candidate,High,source1-D0,ry02-v38-six-byte-identifier-semantics.txt,Runtime state copy of type-0x33 six-byte exact-mask record value; protocol meaning unresolved
+0x00208696,ram,six_byte_state_literal_anchor,High,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,Only reachable RAM literal in state-update producer; used with -6 and +0x3A adjustments
+0x002086D0,ram,six_byte_identifier_changed_flag_candidate,High,source1-D0,ry02-v38-source1-d0-subsystem-provenance-r2.txt,Derived from 0x00208696+0x3A; set to 1 when six-byte state changes
 0x002087BC,ram,persistent_time_state_record_base,High,state,ry02-v38-helper-82580e-and-state-2087c0.txt,Persisted record size 0xA4; marker at +0x00
 0x002087C0,ram,base_current_time_seconds,High,state,ry02-v38-helper-82580e-and-state-2087c0.txt,Record +0x04; refreshed by delayed callback
 0x002087C4,ram,hardware_counter_reference,High,state,ry02-v38-helper-82580e-and-state-2087c0.txt,Record +0x08
 0x002098C0,ram,time_accumulator_candidate,Medium-high,state,ry02-v38-helper-82580e-and-state-2087c0.txt,Added by current-time getter
+0x002098F0,ram,completion_state_object_candidate,Medium,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,D0 completion producer clears byte at +3 and polls related completion helper
+0x00209A0F,ram,configuration_aux_object_candidate,Medium,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,Reachable literal in source1 D0 configuration producer
 0x0020A7B8,ram,write_flag_timer_work_object,High,timer,timer literal/caller report,Object restarted by command 5
 0x0020A7D0,ram,write_flag_saved_argument,High,timer,timer literal/caller report,Saved caller argument associated with timer object
 0x0020A7D4,ram,write_flag_timer_literal_base,High,timer,timer literal/caller report,Literal base from which timer object is derived
+0x00801000,data,cfg_flash_sector_base,High,configuration flash,ry02-v38-cfg-item-service.txt,"4-KiB sector containing prefix, cfg slot, and suffix; derived as cfg base minus 0x400"
+0x00801400,data,cfg_blob_slot_base,High,configuration flash,ry02-v38-cfg-item-service.txt; ry02-v38-accepted-baseline-verification.txt,"0x400-byte persistent cfg slot; header magic at +0, item length at +4, items at +6"
+0x00801800,data,cfg_flash_suffix_base,High,configuration flash,ry02-v38-cfg-item-service.txt,Start of 0x800-byte suffix preserved by _cfg_write_to_flash
 0x00824000,image,application_runtime_base,High,image-layout,all runtime-target reports,Payload offset 0 maps here
 0x00824400,image,application_executable_body_base,High,image-layout,inner-header analysis,Executable body follows 0x400-byte inner header
+0x00824988,code,source1_D0_configuration_startup_parent,Medium-high,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,Only direct parent of 0x00829E70; part of broader startup/initialization call chain
 0x00824B2C,code,set_control_bit5_candidate,Medium,retained-code,ry02-v38-d3-d5-publisher-family.txt,Reads/modifies 16-bit value bit 0x20; only direct caller is unreferenced D3 publisher
-0x00824B6A,code,unused_retained_D3_publisher_candidate,Medium-high,retained-code,ry02-v38-d3-d5-publisher-family.txt,No direct callers and no raw pointers
-0x00824B86,code,D4_D5_publisher,Medium-high,event,ry02-v38-d3-d5-publisher-family.txt,One direct caller; reachable path passes nonzero and emits D4
+0x00824B62,code,v33_counterpart_source1_D3_retained_publisher,Medium-high,cross-version,ry02-v38-29c-producer-provenance.txt,Normalized instruction score 1.000 versus .38 0x00824B6A; heuristic counterpart
+0x00824B6A,code,unused_retained_D3_publisher_candidate,High,retained-code,ry02-v38-29c-producer-provenance.txt,No direct caller and no raw/Thumb pointer in .38; retained unreachable D3 publisher candidate
+0x00824B7E,code,v33_counterpart_source3_D4_D5_publisher,Medium-high,cross-version,ry02-v38-29c-producer-provenance.txt,Normalized instruction score 1.000 versus .38 0x00824B86; heuristic counterpart
+0x00824B86,code,D4_D5_publisher,High,event,ry02-v38-29c-producer-provenance.txt,One direct caller at 0x008296E4; demonstrated caller passes 1 and therefore selects D4
 0x00824F26,code,command5_pre_cleanup_candidate,Low,OTA command 5,command-5 handler disassembly,Exact subsystem unknown
 0x008253A8,code,command5_final_cleanup_candidate,Low,OTA command 5,command-5 handler disassembly,Exact subsystem unknown
 0x0082545E,code,conditional_shutdown_cleanup_candidate,Medium,OTA command 5,command-5 handler disassembly,Cleanup/shutdown role inferred from surrounding paths
+0x00825476,code,source1_D0_completion_parent_candidate,Medium,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,Parent containing only direct call to 0x00826FF8 after polling/wait sequence
 0x00825708,code,time_counter_checkpoint,High,timekeeping,ry02-v38-time-d3-persistence-xrefs.txt,Refreshes counter relationship used by current-time getter
 0x00825800,code,base_time_setter_update,High,timekeeping,ry02-v38-time-d3-persistence-xrefs.txt,Updates base seconds then checkpoints counter
 0x0082580E,code,current_time_getter,High,timekeeping,ry02-v38-helper-82580e-and-state-2087c0.txt,Counter delta divided by 32000/32768 and added to base values
 0x008259DA,code,no_op_stub,High,code,command-5 handler disassembly,BX LR in .38
 0x00825E30,code,command5_status_query_candidate,Medium,OTA command 5,command-5 handler disassembly,Return value compared against 2
 0x00825F6E,code,seconds_to_calendar_conversion_candidate,Medium-high,timekeeping,current-time getter caller analysis,Consumes current-time seconds and output buffer
+0x00826FF8,code,source1_D0_completion_publisher,Medium-high,event,ry02-v38-29c-producer-provenance-r2.txt,"Completion/polling flow; clears state, waits for completion, publishes (1,D0), and returns; .33 counterpart unresolved"
 0x008271BA,code,persistent_state_pre_save_helper_candidate,Low,state,persistent-save caller contexts,Frequently precedes persistent-record save
 0x0082723E,code,persistent_record_save,High,state,ry02-v38-time-d3-persistence-xrefs.txt,Writes/persists 0xA4-byte record
+0x008288C0,code,source1_D0_state_update_shared_tail_target,Medium,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,External tail target reached after state-update D0 publication
+0x00828D12,code,v33_counterpart_source1_D0_state_update,Medium-high,cross-version,ry02-v38-29c-producer-provenance.txt,r1 score 1.000 but must be regenerated with CFG-aware r2 before final acceptance
+0x00828DD2,code,source1_D0_six_byte_state_update,High,event/state,ry02-v38-source1-d0-subsystem-provenance-r2.txt,"Compares input[6] to 0x00208690, copies on change, sets 0x002086D0, calls 0x8385F8, publishes D0"
+0x008291E6,code,source1_D0_state_dispatch_parent_candidate,Medium,source1-D0,ry02-v38-29c-producer-provenance-r2.txt,Parent containing direct call at 0x00829262 to six-byte state-update producer
 0x00829C1A,code,command5_cleanup_candidate,Low,OTA command 5,command-5 handler disassembly,Exact subsystem unknown
+0x00829C94,code,configuration_followup_candidate,Medium,configuration,ry02-v38-source1-d0-subsystem-provenance-r2.txt,Runs immediately after optional D0 publication in startup/configuration producer
+0x00829DA0,code,v33_counterpart_source1_D0_configuration,Medium-high,cross-version,ry02-v38-29c-producer-provenance.txt,Normalized instruction score 1.000 versus .38 0x00829E70; heuristic counterpart
+0x00829E70,code,source1_D0_six_byte_configuration_init,High,event/configuration,ry02-v38-source1-d0-subsystem-provenance-r2.txt,"Extracts and byte-reverses six-byte fields, compares, applies through 0x8385F8 on mismatch, publishes D0"
+0x00829FF2,code,six_byte_state_sync_candidate,Medium,six-byte identifier,ry02-v38-source1-d0-subsystem-provenance-r2.txt,Called from adjacent six-byte state-management flow; helper semantics pending
+0x0082AB8A,code,v33_counterpart_source1_D3_timer_callback,Medium-high,cross-version,ry02-v38-29c-producer-provenance.txt,Normalized instruction score 1.000 versus .38 0x0082AC4A; heuristic counterpart
 0x0082AC3C,code,write_flag_timer_restart_wrapper,High,timer,timer-entrypoint disassembly,Calls 0x13694 with object and delay
-0x0082AC4A,code,write_flag_delayed_D3_callback,High,timer/event,ry02-v38-time-d3-persistence-xrefs.txt,"Stores current time then calls 0x29C(1,0xD3)"
+0x0082AC4A,code,write_flag_delayed_D3_callback,High,timer/event,ry02-v38-29c-producer-provenance.txt; ry02-v38-accepted-baseline-verification.txt,"Active timer callback; exactly one Thumb pointer reference at 0x0082AF04; stores current time, publishes (1,D3), and returns"
 0x0082AC5E,code,write_flag_timer_registration_wrapper,High,timer,timer-entrypoint disassembly,Registers callback 0x0082AC4B with initial 2000 ms
 0x0082AC80,code,ota_command1_handler,High,OTA,command-switch analysis,Command 1 handler
 0x0082AC92,code,ota_command2_handler,High,OTA,command-switch analysis,Command 2 handler
 0x0082AD2A,code,ota_command3_handler,High,OTA,command-switch analysis,Block staging and first-block validation
 0x0082AE26,code,ota_command4_handler,High,OTA,command-switch analysis,Transfer-completeness gate
 0x0082AE62,code,ota_command5_handler,High,OTA,command-switch and handler analysis,Finalize/cleanup and delayed-notification scheduling
+0x0082AF04,data,write_flag_D3_callback_thumb_pointer,High,timer,ry02-v38-29c-producer-provenance.txt,Contains Thumb pointer 0x0082AC4B registering active callback 0x0082AC4A
 0x0082B2C4,code,command5_cleanup_candidate_2,Low,OTA command 5,command-5 handler disassembly,Exact subsystem unknown
+0x00837198,code,load_u32_le,High,runtime helper,ry02-v38-cfg-item-service.txt,Loads bytes 0..3 and assembles a little-endian u32; used by cfg magic validation
 0x008371AE,code,unsigned_divmod_helper,High,runtime helper,ry02-v38-helper-82580e-and-state-2087c0.txt,Callers use quotient and remainder with divisors such as 60
+0x008385F8,code,type33_len6_exact_mask_setter_wrapper,High,six-byte identifier,ry02-v38-six-byte-identifier-semantics.txt,"Builds descriptor type 0x33, len6, caller value, all-FF mask; calls 0x838914; exactly two D0 callers"
+0x008386AC,code,cfg_blob_magic_valid,High,configuration flash,ry02-v38-cfg-item-service.txt,Returns true when load_u32_le(blob) equals 0x8721BEE2
+0x008386FC,code,_cfg_write_to_flash,High,configuration flash,ry02-v38-cfg-item-service.txt; ry02-v38-accepted-baseline-verification.txt,Exact embedded function/tag string; preserves prefix/suffix around 0x400-byte cfg slot and rewrites containing 4-KiB sector
+0x00838914,code,cfg_add_item,High,configuration item service,ry02-v38-masked-record-service.txt; ry02-v38-accepted-baseline-verification.txt,Exact embedded string cfg_add_item; rebuilds serialized cfg blob from up to 32 descriptors and commits via 0x8386FC
+0x00838AFC,code,cfg_find_item_candidate,High,configuration item service,ry02-v38-cfg-item-service.txt,"Searches cfg serialized items by type, length, and mask; logs item[%02x] found!"
+0x00838C94,code,configuration_structure_builder_candidate,Medium,configuration,ry02-v38-source1-d0-subsystem-provenance-r2.txt,Initial helper in source1 D0 startup/configuration function; exact semantics pending
+0x00839CA4,code,type33_len6_exact_mask_getter_wrapper,High,six-byte identifier,ry02-v38-six-byte-identifier-semantics.txt,"Builds type0x33/len6/all-FF mask descriptor, finds matching record, copies six-byte value to output"
+0x0083FDBA,string,str__cfg_write_to_flash,High,configuration flash,ry02-v38-cfg-item-service.txt,Exact ASCII string referenced twice inside 0x008386FC
+0x0083FDCE,string,str_cfg_add_item,High,configuration item service,ry02-v38-masked-record-service.txt,ASCII cfg_add_item referenced from 0x00838998 inside 0x00838914
+0x0083FDDB,string,str_cfg_del_item_unreferenced,High,configuration item service,ry02-v38-cfg-item-service.txt,"ASCII cfg_del_item present but no raw, LDR, or ADR references found"
 0x0084D000,image,staging_xip_base,High,OTA staging,command-3 handler analysis,XIP mapping of physical 0x4D000
+0x8721BEE2,constant,cfg_blob_magic,High,configuration flash,ry02-v38-cfg-item-service.txt,Required little-endian u32 header magic checked by cfg_blob_magic_valid

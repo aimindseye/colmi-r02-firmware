@@ -3,7 +3,7 @@
 **Firmware:** `RY02_3.00.38_250403.bin`  
 **Hardware string:** `RY02_V3.0`  
 **Runtime application base:** `0x00824000`  
-**Report status:** Consolidated static-analysis baseline  
+**Report status:** Consolidated static-analysis baseline; accepted baseline verified  
 **Date:** 2026-07-11
 
 ## 1. Executive conclusion
@@ -375,18 +375,65 @@ Its many unrelated callers confirm it is not an OTA flag, reset-reason getter, o
 
 ### 9.2 Low target `0x29C`
 
-Accepted label:
+Accepted working label:
 
 ```text
 0x0000029C
-    two-argument event/public-notification dispatcher candidate
+    publish_event2_candidate(source_or_category, event_id)
 ```
 
-It must not be named `bx_public` because the public SDK function takes four arguments and no exact binary/symbol match has been established.
+Confidence is **medium-high**.
 
-The application has six direct calls to `0x29C` in `.38`, with event-like values including `0xD0`, `0xD3`, `0xD4`, and `0xD5`.
+The six direct callers establish this visible argument family:
 
-No direct application-side consumer of event `0xD3` has been found.
+| `r0` source/category | `r1` event | Callers | Context class |
+|---:|---:|---:|---|
+| `1` | `0xD0` | 3 | state/configuration update or completion paths |
+| `1` | `0xD3` | 2 | delayed write/state transition paths |
+| `3` | `0xD4` / `0xD5` | 1 | paired boolean/status notification |
+
+It must not be named `bx_public`: the public SDK interface takes four arguments, while every visible RY02 caller deliberately establishes only `r0` and `r1`.
+
+`0x29C` also must not be treated as a synchronous reset primitive:
+
+- the D0 caller at `0x00829EFA` executes substantial ordinary code after the call;
+- the D0 caller at `0x00828E08` branches into shared ordinary control flow after the call;
+- the active D3 timer callback contains a normal `POP {...,PC}` return immediately after the call.
+
+The strongest current model is therefore asynchronous publication:
+
+```text
+producer
+  -> publish_event2_candidate(source/category, event)
+  -> return
+
+unidentified lower consumer
+  -> handles the event later
+```
+
+No direct application-side consumer of source `1`, event `0xD3` has been found. The event may trigger the final OTA transition downstream, but `0xD3 == reset` remains unproven.
+
+
+### 9.3 Producer provenance and reachability
+
+The producer-provenance gate adds the following positive reachability evidence:
+
+```text
+0x00824B6A  source 1 / D3: no direct caller or pointer; retained candidate
+0x00824B86  source 3 / D4-D5: one direct caller; demonstrated path selects D4
+0x00826FF8  source 1 / D0: one direct caller
+0x00828DD2  source 1 / D0: one direct caller; exits by tail branch to shared code
+0x00829E70  source 1 / D0: one direct caller from startup/configuration flow
+0x0082AC4A  source 1 / D3: one Thumb callback pointer at 0x0082AF04
+```
+
+The active D3 callback pointer is direct evidence that `0x0082AC4A` is registered data-driven work rather than dead code.
+
+Strong heuristic `.33` counterparts exist for five producers, including the active D3 callback and both major D0 state/configuration producers. This event family therefore predates `.38` and is not unique to its OTA implementation.
+
+Source/category `1` participates in ordinary completion, state-update, startup/configuration, and delayed-write flows. It should be treated as a broad application service/category rather than an OTA-specific source.
+
+The r1 provenance tool linearly crossed the external tail branch at `0x00828E0C` and decoded the adjacent function at `0x00828E0E`. The adjacent function's reference to `0x002087BC` must not be attributed to producer `0x00828DD2`.
 
 ---
 
@@ -541,14 +588,16 @@ Command 4 checks phase and transferred byte count.
 Command 5 saves application state and schedules a 1000 ms timer.
 The timer callback checkpoints current time.
 The callback calls 0x29C(1,0xD3).
-The callback returns.
+The callback has a normal return after the call.
+Other D0 callers also continue through ordinary application control flow.
 No known direct reset primitive exists in the application image.
 ```
 
 ### 12.2 Strongly supported
 
 ```text
-0x29C crosses into low ROM/controller/event infrastructure.
+0x29C is a returning two-argument event/publication boundary.
+The D3 callback most likely publishes an asynchronous event and returns.
 Final reboot handling is outside the statically visible command-5 chain.
 ```
 
@@ -578,7 +627,7 @@ The exact staged-image acceptance and rollback rules.
 | No direct WDT control | High |
 | No direct public AWO reset signature | High |
 | No credible public SDK jump-table reset call | Medium-high |
-| `0x29C` is an event/public-notification dispatcher | Medium |
+| `0x29C` is a returning two-argument event/publication dispatcher | Medium-high |
 | Final reset occurs in ROM/controller infrastructure | Medium-high |
 | Event `0xD3` directly means reset | Low / unproven |
 | Bootloader bank-selection mechanism | Unknown |
@@ -587,127 +636,81 @@ The exact staged-image acceptance and rollback rules.
 
 ## 14. Recommended next steps
 
-### Priority 0 — Freeze and preserve the accepted baseline
+### Priority 0 — Preserve the accepted baseline
 
-1. Add this report to the repository at:
+Keep these files synchronized:
 
-   ```text
-   docs/reverse-engineering/ry02-command5-ota-architecture.md
-   ```
+```text
+docs/reverse-engineering/ry02-command5-ota-architecture.md
+docs/reverse-engineering/ry02-evidence-index.md
+analysis/ry02-v38-symbol-map.csv
+```
 
-   Do not place the only copy under `analysis/`, because that directory is currently ignored.
+Record exact stock-firmware hashes and Python/Capstone versions in generated reports. Do not replace candidate labels with public SDK names based only on resemblance.
 
-2. Add an evidence index:
+### Baseline maintenance
 
-   ```text
-   docs/reverse-engineering/ry02-evidence-index.md
-   ```
+The deterministic verifier is accepted:
 
-   Map each conclusion to the report/script that produced it.
+```text
+31 checks passed
+0 required failures
+0 optional warnings
+accepted baseline: PASS
+```
 
-3. Add a machine-readable symbol map:
+The exploratory application-side gate sequence is complete. Preserve the
+accepted state by running:
 
-   ```text
-   analysis/ry02-v38-symbol-map.csv
-   ```
+```text
+tools/verify_ry02_accepted_baseline.py
+tools/validate_ry02_baseline_bundle.py
+```
 
-   Suggested columns:
+after any documentation, symbol-map, tool, or firmware-path change.
 
-   ```text
-   address,label,confidence,category,evidence,notes
-   ```
+Do not reopen the closed generic scan routes for:
 
-4. Record exact firmware hashes and tool versions used by every script.
+```text
+low flash ROM names
+AIRCR/WDT/AWO reset signatures
+generic D0-D5 references
+generic BLX targets
+official SDK object libraries
+```
 
-### Priority 1 — Recover the low boundary without touching the device
+New analysis should begin only when a materially new artifact becomes available,
+such as a compatible ROM image/symbol map, bootloader image, or downstream event
+consumer implementation.
 
-1. Inventory SDK static libraries and object files:
+### Priority 2 — Multi-version boot-contract comparison
 
-   ```bash
-   find reference/bluex-sdk3-v3.3.8-20250117 \
-     reference/bluex-sdk3-demo \
-     -type f \
-     \( -iname '*.a' -o -iname '*.lib' -o -iname '*.o' -o -iname '*.obj' \) \
-     -print | sort
-   ```
+Collect additional official RY02 firmware images without flashing them and compare:
 
-   Search symbol tables for:
+```text
+outer and inner headers
+opaque inner metadata
+active/staging addresses
+command-3 first-block validation
+command-4 completion checks
+command-5 call chain
+D0/D3/D4/D5 producer family
+boot-related literals and records
+```
 
-   ```text
-   bx_public
-   bx_post
-   bx_subscibe
-   platform_reset
-   srst_awo
-   sysc_awo_sft_rst_set
-   jump_table
-   ```
+Cross-version invariants are now more likely to expose the bootloader contract than another generic reset scan.
 
-   This is the best remaining chance of recovering a compiler-generated signature for the low event/reset boundary from official material.
-
-2. Build one minimal official SDK3 example, only when a legitimate compatible ARMCC/Keil toolchain is available. Compile calls to:
-
-   ```c
-   bx_public(src, msg, 0, 0);
-   platform_reset(0);
-   bx_dwork(callback, data, 1000, 1);
-   ```
-
-   Compare the resulting Thumb call shapes with RY02. This can test architectural similarity but cannot prove address identity across ROM revisions.
-
-3. Perform a structured six-caller analysis of `0x29C`:
-
-   ```text
-   caller function boundaries
-   live r0/r1 provenance
-   surrounding state transitions
-   post-call control flow
-   .33 versus .38 differences
-   ```
-
-   The goal is to classify the dispatcher’s ABI, not to force a public SDK symbol name.
-
-### Priority 2 — Improve bootloader understanding from official/offline artifacts
-
-1. Search official SDK tools, docs, tags, and image-tool sources for:
-
-   ```text
-   ota_process
-   RESET_AND_LOAD_FW
-   image activation
-   staging address
-   copy-on-boot
-   rollback
-   image-valid marker
-   unloaded_area
-   ```
-
-2. Collect additional official RY02 firmware versions without flashing them. Compare:
-
-   ```text
-   outer headers
-   inner opaque metadata
-   application/staging addresses
-   command-3 validation logic
-   command-5 call chain
-   boot-related constants
-   ```
-
-   Cross-version invariants may expose the bootloader contract more reliably than another scan of a single image.
-
-3. Continue examining the official QRing application only for static protocol and endpoint behavior. Do not use it to trigger another firmware update.
-
-### Priority 3 — Reproducibility deliverables
+### Priority 3 — Reproducibility verifier
 
 Create:
 
 ```text
 tools/verify_ry02_ota_findings.py
-docs/reverse-engineering/ry02-symbol-map.md
-docs/reverse-engineering/ry02-open-questions.md
 ```
 
-The verifier should assert the accepted offsets, literals, call targets, and negative reset signatures against the stock `.38` SHA256.
+The verifier should assert accepted offsets, call targets, literal values, staged addresses, timer delay, callback pointer, and negative reset signatures against the stock `.38` SHA256.
+
+Building a minimal official SDK3 example remains optional and useful only when a legitimate compatible ARMCC/Keil toolchain is available. The checked-in SDK object libraries are unrelated MPU9250 algorithm libraries and provide no BlueX event/reset signatures.
 
 ---
 
@@ -716,12 +719,14 @@ The verifier should assert the accepted offsets, literals, call targets, and neg
 The following paths are exhausted or too low value:
 
 ```text
-additional D0-D5 immediate scans
+additional standalone D0-D5 immediate scans
+repeating the completed six-caller 0x29C scan without new provenance evidence
 further analysis of the unused 0x4926 D0-D3 veneers
 generic AIRCR scans
 generic watchdog scans
 generic public AWO reset scans
 repeating indirect BLX scans without a new ABI signature
+additional searches of the unrelated MPU9250 object libraries
 changing the timer delay
 another OTA attempt
 SWD/device probing
@@ -736,13 +741,15 @@ Do not interpret absence of an application reset primitive as permission to inje
 ```text
 RY02 command 5 is an application-level finalize/cleanup and delayed-notification
 operation. It persists general application/time state, schedules a 1000 ms timer,
-and terminates at low dispatcher call 0x29C(1,0xD3).
+and invokes returning two-argument publication boundary 0x29C with (1,0xD3).
 
-The application image does not directly perform the final reset or staged-image
-activation through any identified Cortex-M AIRCR, watchdog, public SDK jump-table,
-or BlueX AWO reset mechanism.
+0x29C returns normally in the active D3 callback and in multiple non-OTA D0 flows.
+It is therefore not a general synchronous reset primitive. The strongest model is
+that command 5 publishes an asynchronous D3 event whose unidentified downstream
+consumer performs the final shutdown/reset transition.
 
-The reset and boot transition remain below the visible application boundary and
-must be treated as ROM/controller/bootloader behavior until stronger evidence is
-obtained.
+The application image does not directly perform staged-image activation through
+any identified Cortex-M AIRCR, watchdog, public SDK jump-table, or BlueX AWO reset
+mechanism. Reset and bootloader activation remain below the visible application
+boundary until stronger evidence is obtained.
 ```

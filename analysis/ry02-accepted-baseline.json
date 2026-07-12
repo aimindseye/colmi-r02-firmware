@@ -1,0 +1,88 @@
+{
+  "accepted_anchors": {
+    "active_callback_event": {
+      "event": "0xD3",
+      "source": 1
+    },
+    "cfg_add_item": "0x00838914",
+    "cfg_blob_base": "0x00801400",
+    "cfg_blob_magic": "0x8721BEE2",
+    "cfg_sector_base": "0x00801000",
+    "cfg_sector_size": "0x1000",
+    "cfg_slot_size": "0x400",
+    "cfg_write_to_flash": "0x008386FC",
+    "command5": "0x0082AE62",
+    "event_dispatch_candidate": "0x0000029C",
+    "event_dispatch_label": "publish_event2_candidate(source_or_category,event_id)",
+    "hardware_version": "RY02_V3.0",
+    "inner_magic": "0x0981000C",
+    "outer_magic": "0x81BDC3E5",
+    "timer_callback": "0x0082AC4A",
+    "timer_callback_thumb": "0x0082AC4B",
+    "timer_delay_ms": 1000,
+    "timer_restart_wrapper": "0x0082AC3C"
+  },
+  "firmware": {
+    "v33": {
+      "name": "RY02_3.00.33_250117.bin",
+      "payload_length": "0x1B884",
+      "role": "optional structural comparison",
+      "sha256": "3eaad32f25a1734b93b63b86c6a0032c3444b68e7027faf3724bd5148dd4dbcd"
+    },
+    "v38": {
+      "container_length": "0x1CD64",
+      "name": "RY02_3.00.38_250403.bin",
+      "payload_length": "0x1CD14",
+      "runtime_base": "0x00824000",
+      "sha256": "dbf64e3dc9aef112a4d69e46e516efb27f2ed2e3dc1d2d3f1af75939cc46487e"
+    }
+  },
+  "interpretation_boundaries": [
+    "0x29C is not proven to be bx_public.",
+    "0x29C is not a synchronous reset primitive.",
+    "The downstream source-1/D3 consumer remains unresolved.",
+    "No direct AIRCR reset literal is present in the application payload.",
+    "Field type 0x33 remains vendor-defined.",
+    "Exact vendor names for the four low flash ROM functions remain unresolved.",
+    "Bootloader staged-image acceptance and activation remain outside the proven application contract."
+  ],
+  "low_flash": {
+    "0x000081A0": {
+      "direct_callers_v33": 5,
+      "direct_callers_v38": 5,
+      "label": "flash_erase_selector_address_candidate"
+    },
+    "0x00008600": {
+      "direct_callers_v33": 6,
+      "direct_callers_v38": 6,
+      "label": "flash_program_abi_match_candidate"
+    },
+    "0x00008916": {
+      "direct_callers_v33": 2,
+      "direct_callers_v38": 2,
+      "label": "flash_operation_end_candidate"
+    },
+    "0x0000893C": {
+      "direct_callers_v33": 2,
+      "direct_callers_v38": 2,
+      "label": "flash_operation_begin_candidate"
+    }
+  },
+  "maintenance": {
+    "architecture": "docs/reverse-engineering/ry02-command5-ota-architecture.md",
+    "bundle_validator": "tools/validate_ry02_baseline_bundle.py",
+    "evidence_index": "docs/reverse-engineering/ry02-evidence-index.md",
+    "firmware_verifier": "tools/verify_ry02_accepted_baseline.py",
+    "symbol_map": "analysis/ry02-v38-symbol-map.csv"
+  },
+  "schema": "ry02.accepted-baseline.v1",
+  "status": "accepted",
+  "verification": {
+    "accepted_baseline": true,
+    "checks_passed": 31,
+    "optional_warnings": 0,
+    "report": "analysis/ry02-v38-accepted-baseline-verification.txt",
+    "required_failures": 0,
+    "tool_revision": "r1"
+  }
+}

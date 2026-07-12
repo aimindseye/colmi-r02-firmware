@@ -1,0 +1,79 @@
+RY02 ACCEPTED BASELINE VERIFICATION REPORT
+tool revision: r1
+Python: 3.14.6
+Capstone: 5.0.7
+
+firmware38: release/ry02-3.00.38-faster-raw-r1/RY02_3.00.38_250403.bin
+
+firmware33: vendor/RY02_3.00.33_250117.bin
+
+====================================================================================================================
+CHECKS
+[PASS] stock .38 SHA256 (required)
+       actual=dbf64e3dc9aef112a4d69e46e516efb27f2ed2e3dc1d2d3f1af75939cc46487e expected=dbf64e3dc9aef112a4d69e46e516efb27f2ed2e3dc1d2d3f1af75939cc46487e
+[PASS] stock .38 container length (required)
+       actual=0x1CD64 expected=0x1CD64
+[PASS] stock .38 payload length (required)
+       actual=0x1CD14 expected=0x1CD14
+[PASS] outer magic (required)
+       actual=0x81BDC3E5 expected=0x81BDC3E5
+[PASS] inner magic (required)
+       actual=0x0981000C expected=0x0981000C
+[PASS] hardware-version string present (required)
+       offsets=0x30,0x1D20,0x6238,0x6F78
+[PASS] command-5 direct-call sequence (required)
+       actual=[0x00824F26,0x00825E30,0x008259DA,0x0082545E,0x0082723E,0x0082AC3C,0x0082B2C4,0x00829C1A,0x008253A8] expected=[0x00824F26,0x00825E30,0x008259DA,0x0082545E,0x0082723E,0x0082AC3C,0x0082B2C4,0x00829C1A,0x008253A8]
+[PASS] command-5 has one delayed-timer restart (required)
+       sites=0x0082AEA0
+[PASS] command-5 constructs 1000 ms delay (required)
+       [('bl', '#0x82545e'), ('bl', '#0x82723e'), ('movs', 'r0, #0x7d'), ('lsls', 'r0, r0, #3')]
+[PASS] active delayed-callback Thumb pointer (required)
+       actual=0x0082AC4B expected=0x0082AC4B
+[PASS] delayed callback direct calls (required)
+       actual=[0x0082580E,0x0000029C] expected=[0x0082580E,0x0000029C]
+[PASS] delayed callback publishes source 1 / D3 (required)
+       site=0x0082AC58
+[PASS] complete 0x29C direct-caller family (required)
+       actual=[0x00824B80,0x00824BA6,0x00827032,0x00828E08,0x00829EFA,0x0082AC58] expected=[0x00824B80,0x00824BA6,0x00827032,0x00828E08,0x00829EFA,0x0082AC58]
+[PASS] D0 path continues after 0x29C (required)
+       actual=0x00829C94 expected=0x00829C94
+[PASS] D3 callback returns after 0x29C (required)
+       pop {r4, pc}
+[PASS] no raw 0x29C/0x29D pointers (required)
+       exact=none thumb=none
+[PASS] no direct AIRCR literal (required)
+       offsets=none
+[PASS] configuration magic literal present (required)
+       offsets=0x146CC
+[PASS] string cfg_add_item present (required)
+       offsets=0x1BDCE
+[PASS] string _cfg_write_to_flash present (required)
+       offsets=0x1BDBA
+[PASS] string cfg_del_item present (required)
+       offsets=0x1BDDB
+[PASS] low-flash caller count 0x0000893C (required)
+       actual=2 expected=2
+[PASS] low-flash caller count 0x000081A0 (required)
+       actual=5 expected=5
+[PASS] low-flash caller count 0x00008600 (required)
+       actual=6 expected=6
+[PASS] low-flash caller count 0x00008916 (required)
+       actual=2 expected=2
+[PASS] stock .33 SHA256 (optional)
+       actual=3eaad32f25a1734b93b63b86c6a0032c3444b68e7027faf3724bd5148dd4dbcd expected=3eaad32f25a1734b93b63b86c6a0032c3444b68e7027faf3724bd5148dd4dbcd
+[PASS] stock .33 payload length (optional)
+       actual=0x1B884 expected=0x1B884
+[PASS] .33 low-flash caller count 0x0000893C (optional)
+       actual=2 expected=2
+[PASS] .33 low-flash caller count 0x000081A0 (optional)
+       actual=5 expected=5
+[PASS] .33 low-flash caller count 0x00008600 (optional)
+       actual=6 expected=6
+[PASS] .33 low-flash caller count 0x00008916 (optional)
+       actual=2 expected=2
+====================================================================================================================
+SUMMARY
+checks passed: 31
+required failures: 0
+optional warnings: 0
+accepted baseline: PASS
