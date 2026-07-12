@@ -1,0 +1,415 @@
+{
+  "checks": [
+    {
+      "detail": "missing=none",
+      "name": "required RingCLI source files",
+      "passed": true
+    },
+    {
+      "detail": "actual=1 expected=0x01",
+      "name": "constant COMMAND_SET_TIME",
+      "passed": true
+    },
+    {
+      "detail": "actual=3 expected=0x03",
+      "name": "constant COMMAND_BATTERY_INFO",
+      "passed": true
+    },
+    {
+      "detail": "actual=8 expected=0x08",
+      "name": "constant COMMAND_SHUTDOWN",
+      "passed": true
+    },
+    {
+      "detail": "actual=16 expected=0x10",
+      "name": "constant COMMAND_BATTERY_FLASH_LED",
+      "passed": true
+    },
+    {
+      "detail": "actual=21 expected=0x15",
+      "name": "constant COMMAND_HEART_RATE_READ",
+      "passed": true
+    },
+    {
+      "detail": "actual=22 expected=0x16",
+      "name": "constant COMMAND_HEART_RATE_PERIOD",
+      "passed": true
+    },
+    {
+      "detail": "actual=67 expected=0x43",
+      "name": "constant COMMAND_GET_ACTIVITY_DATA",
+      "passed": true
+    },
+    {
+      "detail": "actual=105 expected=0x69",
+      "name": "constant COMMAND_START_REAL_TIME",
+      "passed": true
+    },
+    {
+      "detail": "actual=106 expected=0x6A",
+      "name": "constant COMMAND_STOP_REAL_TIME",
+      "passed": true
+    },
+    {
+      "detail": "actual=115 expected=0x73",
+      "name": "constant COMMAND_GET_ACTIVITY_UNKNOWN",
+      "passed": true
+    },
+    {
+      "detail": "actual=255 expected=0xFF",
+      "name": "constant COMMAND_ERROR",
+      "passed": true
+    },
+    {
+      "detail": "actual=39 expected=0x27",
+      "name": "constant DATA_REQUEST_ID_SLEEP",
+      "passed": true
+    },
+    {
+      "detail": "actual=42 expected=0x2A",
+      "name": "constant DATA_REQUEST_ID_OXYGEN",
+      "passed": true
+    },
+    {
+      "detail": "actual=188 expected=0xBC",
+      "name": "constant DATA_REQUEST_MAGIC_VALUE",
+      "passed": true
+    },
+    {
+      "detail": "actual=0 expected=0x00",
+      "name": "constant LANGUAGE_CHINESE",
+      "passed": true
+    },
+    {
+      "detail": "actual=1 expected=0x01",
+      "name": "constant LANGUAGE_ENGLISH",
+      "passed": true
+    },
+    {
+      "detail": "actual=6 expected=0x06",
+      "name": "constant REAL_TIME_HEART_RATE_CONTINUOUS",
+      "passed": true
+    },
+    {
+      "detail": "actual=1 expected=0x01",
+      "name": "constant REAL_TIME_HEART_RATE_BATCH",
+      "passed": true
+    },
+    {
+      "detail": "actual=3 expected=0x03",
+      "name": "constant REAL_TIME_BLOOD_OXYGEN",
+      "passed": true
+    },
+    {
+      "detail": "actual=10 expected=0x0A",
+      "name": "constant REAL_TIME_HRV",
+      "passed": true
+    },
+    {
+      "detail": "actual=1 expected=0x01",
+      "name": "constant REAL_TIME_ACTION_START",
+      "passed": true
+    },
+    {
+      "detail": "actual=2 expected=0x02",
+      "name": "constant REAL_TIME_ACTION_PAUSE",
+      "passed": true
+    },
+    {
+      "detail": "actual=3 expected=0x03",
+      "name": "constant REAL_TIME_ACTION_CONT",
+      "passed": true
+    },
+    {
+      "detail": "actual=4 expected=0x04",
+      "name": "constant REAL_TIME_ACTION_STOP",
+      "passed": true
+    },
+    {
+      "detail": "actual='6E40FFF0-B5A3-F393-E0A9-E50E24DCCA9E' expected=6E40FFF0-B5A3-F393-E0A9-E50E24DCCA9E",
+      "name": "UUID UUID_BLE_COMMAND_UART_SERVICE",
+      "passed": true
+    },
+    {
+      "detail": "actual='6E400002-B5A3-F393-E0A9-E50E24DCCA9E' expected=6E400002-B5A3-F393-E0A9-E50E24DCCA9E",
+      "name": "UUID UUID_BLE_COMMAND_UART_TX_CHAR",
+      "passed": true
+    },
+    {
+      "detail": "actual='6E400003-B5A3-F393-E0A9-E50E24DCCA9E' expected=6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
+      "name": "UUID UUID_BLE_COMMAND_UART_RX_CHAR",
+      "passed": true
+    },
+    {
+      "detail": "actual='DE5BF728-D711-4E47-AF26-65E3012A5DC7' expected=DE5BF728-D711-4E47-AF26-65E3012A5DC7",
+      "name": "UUID UUID_BLE_DATA_UART_SERVICE",
+      "passed": true
+    },
+    {
+      "detail": "actual='DE5BF72A-D711-4E47-AF26-65E3012A5DC7' expected=DE5BF72A-D711-4E47-AF26-65E3012A5DC7",
+      "name": "UUID UUID_BLE_DATA_UART_TX_CHAR",
+      "passed": true
+    },
+    {
+      "detail": "actual='DE5BF729-D711-4E47-AF26-65E3012A5DC7' expected=DE5BF729-D711-4E47-AF26-65E3012A5DC7",
+      "name": "UUID UUID_BLE_DATA_UART_RX_CHAR",
+      "passed": true
+    },
+    {
+      "detail": "marker='make([]byte, 16, 16)'",
+      "name": "16-byte command packet",
+      "passed": true
+    },
+    {
+      "detail": "marker='packet[0] = command'",
+      "name": "command at byte 0",
+      "passed": true
+    },
+    {
+      "detail": "marker='packet[15] = checksum(packet)'",
+      "name": "checksum at byte 15",
+      "passed": true
+    },
+    {
+      "detail": "marker='checksum(packet[0:15])'",
+      "name": "checksum verifies bytes 0..14",
+      "passed": true
+    },
+    {
+      "detail": "marker='make([]byte, 6, 6)'",
+      "name": "6-byte data request",
+      "passed": true
+    },
+    {
+      "detail": "marker='packet[0] = DATA_REQUEST_MAGIC_VALUE'",
+      "name": "data magic byte",
+      "passed": true
+    },
+    {
+      "detail": "marker='packet[4] = 0xFF'",
+      "name": "data request FF tail 1",
+      "passed": true
+    },
+    {
+      "detail": "marker='packet[5] = 0xFF'",
+      "name": "data request FF tail 2",
+      "passed": true
+    },
+    {
+      "detail": "byte accumulator adds every supplied byte",
+      "name": "8-bit additive checksum implementation",
+      "passed": true
+    },
+    {
+      "detail": "source markers present",
+      "name": "time payload BCD Y/M/D/h/m/s plus language",
+      "passed": true
+    },
+    {
+      "detail": "offset,0F,00,5F,01",
+      "name": "steps request payload",
+      "passed": true
+    }
+  ],
+  "constants": {
+    "COMMAND_BATTERY_FLASH_LED": 16,
+    "COMMAND_BATTERY_INFO": 3,
+    "COMMAND_ERROR": 255,
+    "COMMAND_GET_ACTIVITY_DATA": 67,
+    "COMMAND_GET_ACTIVITY_UNKNOWN": 115,
+    "COMMAND_HEART_RATE_PERIOD": 22,
+    "COMMAND_HEART_RATE_READ": 21,
+    "COMMAND_SET_TIME": 1,
+    "COMMAND_SHUTDOWN": 8,
+    "COMMAND_START_REAL_TIME": 105,
+    "COMMAND_STOP_REAL_TIME": 106,
+    "DATA_REQUEST_ID_OXYGEN": 42,
+    "DATA_REQUEST_ID_SLEEP": 39,
+    "DATA_REQUEST_MAGIC_VALUE": 188,
+    "LANGUAGE_CHINESE": 0,
+    "LANGUAGE_ENGLISH": 1,
+    "REAL_TIME_ACTION_CONT": 3,
+    "REAL_TIME_ACTION_PAUSE": 2,
+    "REAL_TIME_ACTION_START": 1,
+    "REAL_TIME_ACTION_STOP": 4,
+    "REAL_TIME_BLOOD_OXYGEN": 3,
+    "REAL_TIME_HEART_RATE_BATCH": 1,
+    "REAL_TIME_HEART_RATE_CONTINUOUS": 6,
+    "REAL_TIME_HRV": 10
+  },
+  "firmware_scan": {
+    "command_byte_counts_nonsemantic": {
+      "0x01": 3625,
+      "0x03": 1118,
+      "0x08": 1603,
+      "0x10": 1413,
+      "0x15": 242,
+      "0x16": 204,
+      "0x43": 1053,
+      "0x69": 786,
+      "0x6A": 333,
+      "0x73": 283,
+      "0xFF": 2159
+    },
+    "container_length": 118116,
+    "error": null,
+    "matches": {
+      "UUID_BLE_COMMAND_UART_RX_CHAR": {
+        "canonical": {
+          "container_offsets": [],
+          "needle_hex": "6e400003b5a3f393e0a9e50e24dcca9e",
+          "payload_offsets": []
+        },
+        "full_reverse": {
+          "container_offsets": [
+            111390
+          ],
+          "needle_hex": "9ecadc240ee5a9e093f3a3b50300406e",
+          "payload_offsets": [
+            111310
+          ]
+        },
+        "guid_bytes_le": {
+          "container_offsets": [],
+          "needle_hex": "0300406ea3b593f3e0a9e50e24dcca9e",
+          "payload_offsets": []
+        }
+      },
+      "UUID_BLE_COMMAND_UART_SERVICE": {
+        "canonical": {
+          "container_offsets": [],
+          "needle_hex": "6e40fff0b5a3f393e0a9e50e24dcca9e",
+          "payload_offsets": []
+        },
+        "full_reverse": {
+          "container_offsets": [
+            111260
+          ],
+          "needle_hex": "9ecadc240ee5a9e093f3a3b5f0ff406e",
+          "payload_offsets": [
+            111180
+          ]
+        },
+        "guid_bytes_le": {
+          "container_offsets": [],
+          "needle_hex": "f0ff406ea3b593f3e0a9e50e24dcca9e",
+          "payload_offsets": []
+        }
+      },
+      "UUID_BLE_COMMAND_UART_TX_CHAR": {
+        "canonical": {
+          "container_offsets": [],
+          "needle_hex": "6e400002b5a3f393e0a9e50e24dcca9e",
+          "payload_offsets": []
+        },
+        "full_reverse": {
+          "container_offsets": [
+            111334
+          ],
+          "needle_hex": "9ecadc240ee5a9e093f3a3b50200406e",
+          "payload_offsets": [
+            111254
+          ]
+        },
+        "guid_bytes_le": {
+          "container_offsets": [],
+          "needle_hex": "0200406ea3b593f3e0a9e50e24dcca9e",
+          "payload_offsets": []
+        }
+      },
+      "UUID_BLE_DATA_UART_RX_CHAR": {
+        "canonical": {
+          "container_offsets": [],
+          "needle_hex": "de5bf729d7114e47af2665e3012a5dc7",
+          "payload_offsets": []
+        },
+        "full_reverse": {
+          "container_offsets": [
+            111194
+          ],
+          "needle_hex": "c75d2a01e36526af474e11d729f75bde",
+          "payload_offsets": [
+            111114
+          ]
+        },
+        "guid_bytes_le": {
+          "container_offsets": [],
+          "needle_hex": "29f75bde11d7474eaf2665e3012a5dc7",
+          "payload_offsets": []
+        }
+      },
+      "UUID_BLE_DATA_UART_SERVICE": {
+        "canonical": {
+          "container_offsets": [],
+          "needle_hex": "de5bf728d7114e47af2665e3012a5dc7",
+          "payload_offsets": []
+        },
+        "full_reverse": {
+          "container_offsets": [
+            111064
+          ],
+          "needle_hex": "c75d2a01e36526af474e11d728f75bde",
+          "payload_offsets": [
+            110984
+          ]
+        },
+        "guid_bytes_le": {
+          "container_offsets": [],
+          "needle_hex": "28f75bde11d7474eaf2665e3012a5dc7",
+          "payload_offsets": []
+        }
+      },
+      "UUID_BLE_DATA_UART_TX_CHAR": {
+        "canonical": {
+          "container_offsets": [],
+          "needle_hex": "de5bf72ad7114e47af2665e3012a5dc7",
+          "payload_offsets": []
+        },
+        "full_reverse": {
+          "container_offsets": [
+            111138
+          ],
+          "needle_hex": "c75d2a01e36526af474e11d72af75bde",
+          "payload_offsets": [
+            111058
+          ]
+        },
+        "guid_bytes_le": {
+          "container_offsets": [],
+          "needle_hex": "2af75bde11d7474eaf2665e3012a5dc7",
+          "payload_offsets": []
+        }
+      }
+    },
+    "payload_length": 118036,
+    "present": true,
+    "sha256": "dbf64e3dc9aef112a4d69e46e516efb27f2ed2e3dc1d2d3f1af75939cc46487e",
+    "sha_match": true
+  },
+  "fixtures": {
+    "battery_request": "03000000000000000000000000000003",
+    "flash_led_request": "10000000000000000000000000000010",
+    "heart_period_get": "16010000000000000000000000000017",
+    "heart_period_set_enabled_60": "1602013c000000000000000000000055",
+    "oxygen_data_request": "bc2a0000ffff",
+    "realtime_hr_batch_continue": "6901030000000000000000000000006d",
+    "realtime_hr_batch_start": "6901010000000000000000000000006b",
+    "realtime_hr_batch_stop": "6a01000000000000000000000000006b",
+    "set_time_2025_04_09_12_34_56_en": "012504091234560100000000000000d0",
+    "shutdown_request": "08010000000000000000000000000009",
+    "sleep_data_request": "bc270000ffff",
+    "steps_offset_0": "43000f005f01000000000000000000b2"
+  },
+  "ringcli_git_head": "3cc884d943c4b4052d20ad6bb8697d75cf713060",
+  "ringcli_root": "reference/ringcli",
+  "schema": "ry02.ringcli-protocol-contract.v1",
+  "tool_revision": "r1",
+  "uuids": {
+    "UUID_BLE_COMMAND_UART_RX_CHAR": "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
+    "UUID_BLE_COMMAND_UART_SERVICE": "6E40FFF0-B5A3-F393-E0A9-E50E24DCCA9E",
+    "UUID_BLE_COMMAND_UART_TX_CHAR": "6E400002-B5A3-F393-E0A9-E50E24DCCA9E",
+    "UUID_BLE_DATA_UART_RX_CHAR": "DE5BF729-D711-4E47-AF26-65E3012A5DC7",
+    "UUID_BLE_DATA_UART_SERVICE": "DE5BF728-D711-4E47-AF26-65E3012A5DC7",
+    "UUID_BLE_DATA_UART_TX_CHAR": "DE5BF72A-D711-4E47-AF26-65E3012A5DC7"
+  }
+}

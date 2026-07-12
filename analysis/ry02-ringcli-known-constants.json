@@ -1,0 +1,28 @@
+{
+  "schema": "ry02.ringcli-known-constants.v1",
+  "commands": {
+    "set_time": "0x01",
+    "battery": "0x03",
+    "shutdown": "0x08",
+    "flash_led": "0x10",
+    "heart_rate_read": "0x15",
+    "heart_rate_period": "0x16",
+    "activity": "0x43",
+    "realtime_start_continue": "0x69",
+    "realtime_stop": "0x6A",
+    "activity_unknown": "0x73",
+    "error": "0xFF"
+  },
+  "data_request_ids": {
+    "sleep": "0x27",
+    "oxygen": "0x2A"
+  },
+  "uuids": {
+    "command_service": "6E40FFF0-B5A3-F393-E0A9-E50E24DCCA9E",
+    "command_write": "6E400002-B5A3-F393-E0A9-E50E24DCCA9E",
+    "command_notify": "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
+    "data_service": "DE5BF728-D711-4E47-AF26-65E3012A5DC7",
+    "data_write": "DE5BF72A-D711-4E47-AF26-65E3012A5DC7",
+    "data_notify": "DE5BF729-D711-4E47-AF26-65E3012A5DC7"
+  }
+}

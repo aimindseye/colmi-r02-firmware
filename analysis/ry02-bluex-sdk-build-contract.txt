@@ -1,0 +1,790 @@
+RY02 BLUEX SDK BUILD-CONTRACT REPORT
+tool revision: r1
+Python: 3.14.6
+SDKm: reference/bluex-sdkm-v3.3-20210804
+SDK3: reference/bluex-sdk3-v3.3.8-20250117
+firmware38: release/ry02-3.00.38-faster-raw-r1/RY02_3.00.38_250403.bin
+
+Interpretation boundary:
+  this is an offline build/image comparison
+  it does not establish bootloader acceptance
+  it does not authorize flashing a generated image
+
+====================================================================================================================
+ARTIFACT COMPARISON
+
+tools/bluex/bootloader/bootloader.hex
+  SDKm: size=0x2FE4 (12260) sha256=63ceac4d85663c1b466062af1ea1e31a8b43a1ea7a72f2aae51a9a19988b8eb5
+  SDK3: size=0x2FE4 (12260) sha256=63ceac4d85663c1b466062af1ea1e31a8b43a1ea7a72f2aae51a9a19988b8eb5
+  byte comparison: IDENTICAL
+
+tools/bluex/image_tool_v2/boot_ram.bin
+  SDKm: size=0x141C (5148) sha256=e5a300484bc1a2475915f54d8f200781e25f2d1040b3cd3e84a241ccf3c74ec5
+  SDK3: size=0x141C (5148) sha256=e5a300484bc1a2475915f54d8f200781e25f2d1040b3cd3e84a241ccf3c74ec5
+  byte comparison: IDENTICAL
+
+tools/bluex/image_tool_v2/boot_ram.elf
+  SDKm: size=0x472BC (291516) sha256=39f76a716a098b02fc772c1982025f86d2f55c1aa0bb745d3443040eaf4fb8a6
+  SDK3: size=0x472BC (291516) sha256=39f76a716a098b02fc772c1982025f86d2f55c1aa0bb745d3443040eaf4fb8a6
+  byte comparison: IDENTICAL
+
+tools/bluex/image_tool_v2/boot_ram.hex
+  SDKm: size=0x2FE4 (12260) sha256=1065706ee0bd30b9edd8b66f37394e3b01454d9dfba585bd52f2b15eb5710f1b
+  SDK3: size=0x2FE4 (12260) sha256=1065706ee0bd30b9edd8b66f37394e3b01454d9dfba585bd52f2b15eb5710f1b
+  byte comparison: IDENTICAL
+
+tools/bluex/image_tool_v2/boot_ram.asm
+  SDKm: size=0x29909 (170249) sha256=b8fe85d2d8c36ae9c2563ec34fc985e4e02d988b128ce85eb8277d46ad8f3676
+  SDK3: size=0x29909 (170249) sha256=b8fe85d2d8c36ae9c2563ec34fc985e4e02d988b128ce85eb8277d46ad8f3676
+  byte comparison: IDENTICAL
+
+tools/bluex/image_tool_v2/config.ini
+  SDKm: size=0x211 (529) sha256=b2b77b7592db9a050db3b38a88a5cb417e0c4698b419e52ab13941302b23b4fa
+  SDK3: size=0x211 (529) sha256=b2b77b7592db9a050db3b38a88a5cb417e0c4698b419e52ab13941302b23b4fa
+  byte comparison: IDENTICAL
+
+tools/bluex/image_tool_v2/boot_ram_config.exe
+  SDKm: size=0x57000 (356352) sha256=4a5df31cff4226e3f85632f627522f59fc1d2ca74574611f0bd12d5906ba6115
+  SDK3: size=0x57000 (356352) sha256=4a5df31cff4226e3f85632f627522f59fc1d2ca74574611f0bd12d5906ba6115
+  byte comparison: IDENTICAL
+
+====================================================================================================================
+INTEL HEX: SDKm bootloader.hex
+path: reference/bluex-sdkm-v3.3-20210804/tools/bluex/bootloader/bootloader.hex
+valid: True
+errors: 0
+data bytes: 0x141E (5150)
+ranges: 1
+  0x00800000..0x0080141D size=0x141E
+entry linear: None
+entry segment: None
+record counts: 0x00=161, 0x01=1, 0x04=1
+
+====================================================================================================================
+INTEL HEX: SDKm boot_ram.hex
+path: reference/bluex-sdkm-v3.3-20210804/tools/bluex/image_tool_v2/boot_ram.hex
+valid: True
+errors: 0
+data bytes: 0x141E (5150)
+ranges: 1
+  0x00800000..0x0080141D size=0x141E
+entry linear: None
+entry segment: None
+record counts: 0x00=161, 0x01=1, 0x04=1
+
+====================================================================================================================
+ELF: SDKm boot_ram.elf
+path: reference/bluex-sdkm-v3.3-20210804/tools/bluex/image_tool_v2/boot_ram.elf
+valid: True
+errors: 0
+class: 1
+endian: little
+machine: 40
+entry: 0x00128219
+program headers:
+  [0] type=1 off=0x0 vaddr=0x00120000 paddr=0x00120000 filesz=0x940C memsz=0x99AA flags=0x7 align=0x10000
+allocated/nonempty sections:
+  [1] 'boot_ram' type=1 flags=0x7 addr=0x00127FF0 off=0x7FF0 size=0x1414
+  [2] '.zero.table' type=1 flags=0x3 addr=0x00129404 off=0x9404 size=0x8
+  [3] 'bss' type=8 flags=0x3 addr=0x0012940C off=0x940C size=0x408
+  [4] '.ARM.attributes' type=1879048195 flags=0x0 addr=0x00000000 off=0x940C size=0x28
+  [5] '.comment' type=1 flags=0x30 addr=0x00000000 off=0x9434 size=0x7E
+  [6] '.debug_info' type=1 flags=0x0 addr=0x00000000 off=0x94B2 size=0x1EDFD
+  [7] '.debug_abbrev' type=1 flags=0x0 addr=0x00000000 off=0x282AF size=0x399B
+  [8] '.debug_loc' type=1 flags=0x0 addr=0x00000000 off=0x2BC4A size=0x4669
+  [9] '.debug_aranges' type=1 flags=0x0 addr=0x00000000 off=0x302B3 size=0x6D8
+  [10] '.debug_ranges' type=1 flags=0x0 addr=0x00000000 off=0x3098B size=0xF08
+  [11] '.debug_line' type=1 flags=0x0 addr=0x00000000 off=0x31893 size=0x5E95
+  [12] '.debug_str' type=1 flags=0x30 addr=0x00000000 off=0x37728 size=0x7144
+  [13] '.debug_frame' type=1 flags=0x0 addr=0x00000000 off=0x3E86C size=0x1030
+  [14] '.bss' type=8 flags=0x3 addr=0x00129814 off=0x940C size=0x196
+  [15] '.symtab' type=2 flags=0x0 addr=0x00000000 off=0x3F89C size=0x3C30
+  [16] '.strtab' type=3 flags=0x0 addr=0x00000000 off=0x434CC size=0x3A69
+  [17] '.shstrtab' type=3 flags=0x0 addr=0x00000000 off=0x46F35 size=0xB4
+selected symbols: 37
+  0x00000000 size=0x0 flash_base.c
+  0x00000000 size=0x0 flash_cache.c
+  0x00000000 size=0x0 flash_integration.c
+  0x00000000 size=0x0 flash_wrapper.c
+  0x00127FF0 size=0x20 boot_ram_head
+  0x00128219 size=0x94 main
+  0x001284AD size=0x4 flash_program_svcall
+  0x001284B1 size=0x4 flash_erase_svcall
+  0x001284B5 size=0x4 flash_read_svcall
+  0x001284B9 size=0x4 flash_multi_read_32bits_svcall
+  0x001284BD size=0x4 flash_write_status_reg_svcall
+  0x001284C1 size=0x24 flash_program_execution
+  0x001284E5 size=0x16 flash_program_operation
+  0x001284FB size=0x20 flash_erase_execution
+  0x0012851B size=0x16 flash_erase_operation
+  0x00128531 size=0x24 flash_read_execution
+  0x00128555 size=0x16 flash_read_operation
+  0x0012856B size=0x20 flash_multi_read_32bits_execution
+  0x0012858B size=0x16 flash_multi_read_32bits_operation
+  0x001285A1 size=0x20 flash_write_status_reg_execution
+  0x001285C1 size=0x16 flash_write_status_reg_operation
+  0x001286F5 size=0x14 flash_cache_flush_all
+  0x00128709 size=0x3C flash_cache_config
+  0x00128745 size=0x34 flash_cache_enable
+  0x00128779 size=0x24 flash_cache_disable
+  0x00129105 size=0x12 flash_write_enable
+  0x00129117 size=0x28 flash_operation_wait.constprop.0
+  0x0012913F size=0x28 flash_program_operation_start
+  0x00129167 size=0x40 flash_erase_operation_start
+  0x001291A7 size=0xA flash_multi_read_32bits_operation_start
+  0x001291B1 size=0x8 flash_read_operation_start
+  0x001291B9 size=0x48 flash_write_status_reg_start
+  0x00129201 size=0x9E flash_multi_read
+  0x0012929F size=0x7A flash_program
+  0x00129319 size=0x34 flash_erase
+  0x0012934D size=0x16 flash_read_status_reg
+  0x00129363 size=0x8 flash_write_status_reg
+
+====================================================================================================================
+INTEL HEX: SDK3 bootloader.hex
+path: reference/bluex-sdk3-v3.3.8-20250117/tools/bluex/bootloader/bootloader.hex
+valid: True
+errors: 0
+data bytes: 0x141E (5150)
+ranges: 1
+  0x00800000..0x0080141D size=0x141E
+entry linear: None
+entry segment: None
+record counts: 0x00=161, 0x01=1, 0x04=1
+
+====================================================================================================================
+INTEL HEX: SDK3 boot_ram.hex
+path: reference/bluex-sdk3-v3.3.8-20250117/tools/bluex/image_tool_v2/boot_ram.hex
+valid: True
+errors: 0
+data bytes: 0x141E (5150)
+ranges: 1
+  0x00800000..0x0080141D size=0x141E
+entry linear: None
+entry segment: None
+record counts: 0x00=161, 0x01=1, 0x04=1
+
+====================================================================================================================
+ELF: SDK3 boot_ram.elf
+path: reference/bluex-sdk3-v3.3.8-20250117/tools/bluex/image_tool_v2/boot_ram.elf
+valid: True
+errors: 0
+class: 1
+endian: little
+machine: 40
+entry: 0x00128219
+program headers:
+  [0] type=1 off=0x0 vaddr=0x00120000 paddr=0x00120000 filesz=0x940C memsz=0x99AA flags=0x7 align=0x10000
+allocated/nonempty sections:
+  [1] 'boot_ram' type=1 flags=0x7 addr=0x00127FF0 off=0x7FF0 size=0x1414
+  [2] '.zero.table' type=1 flags=0x3 addr=0x00129404 off=0x9404 size=0x8
+  [3] 'bss' type=8 flags=0x3 addr=0x0012940C off=0x940C size=0x408
+  [4] '.ARM.attributes' type=1879048195 flags=0x0 addr=0x00000000 off=0x940C size=0x28
+  [5] '.comment' type=1 flags=0x30 addr=0x00000000 off=0x9434 size=0x7E
+  [6] '.debug_info' type=1 flags=0x0 addr=0x00000000 off=0x94B2 size=0x1EDFD
+  [7] '.debug_abbrev' type=1 flags=0x0 addr=0x00000000 off=0x282AF size=0x399B
+  [8] '.debug_loc' type=1 flags=0x0 addr=0x00000000 off=0x2BC4A size=0x4669
+  [9] '.debug_aranges' type=1 flags=0x0 addr=0x00000000 off=0x302B3 size=0x6D8
+  [10] '.debug_ranges' type=1 flags=0x0 addr=0x00000000 off=0x3098B size=0xF08
+  [11] '.debug_line' type=1 flags=0x0 addr=0x00000000 off=0x31893 size=0x5E95
+  [12] '.debug_str' type=1 flags=0x30 addr=0x00000000 off=0x37728 size=0x7144
+  [13] '.debug_frame' type=1 flags=0x0 addr=0x00000000 off=0x3E86C size=0x1030
+  [14] '.bss' type=8 flags=0x3 addr=0x00129814 off=0x940C size=0x196
+  [15] '.symtab' type=2 flags=0x0 addr=0x00000000 off=0x3F89C size=0x3C30
+  [16] '.strtab' type=3 flags=0x0 addr=0x00000000 off=0x434CC size=0x3A69
+  [17] '.shstrtab' type=3 flags=0x0 addr=0x00000000 off=0x46F35 size=0xB4
+selected symbols: 37
+  0x00000000 size=0x0 flash_base.c
+  0x00000000 size=0x0 flash_cache.c
+  0x00000000 size=0x0 flash_integration.c
+  0x00000000 size=0x0 flash_wrapper.c
+  0x00127FF0 size=0x20 boot_ram_head
+  0x00128219 size=0x94 main
+  0x001284AD size=0x4 flash_program_svcall
+  0x001284B1 size=0x4 flash_erase_svcall
+  0x001284B5 size=0x4 flash_read_svcall
+  0x001284B9 size=0x4 flash_multi_read_32bits_svcall
+  0x001284BD size=0x4 flash_write_status_reg_svcall
+  0x001284C1 size=0x24 flash_program_execution
+  0x001284E5 size=0x16 flash_program_operation
+  0x001284FB size=0x20 flash_erase_execution
+  0x0012851B size=0x16 flash_erase_operation
+  0x00128531 size=0x24 flash_read_execution
+  0x00128555 size=0x16 flash_read_operation
+  0x0012856B size=0x20 flash_multi_read_32bits_execution
+  0x0012858B size=0x16 flash_multi_read_32bits_operation
+  0x001285A1 size=0x20 flash_write_status_reg_execution
+  0x001285C1 size=0x16 flash_write_status_reg_operation
+  0x001286F5 size=0x14 flash_cache_flush_all
+  0x00128709 size=0x3C flash_cache_config
+  0x00128745 size=0x34 flash_cache_enable
+  0x00128779 size=0x24 flash_cache_disable
+  0x00129105 size=0x12 flash_write_enable
+  0x00129117 size=0x28 flash_operation_wait.constprop.0
+  0x0012913F size=0x28 flash_program_operation_start
+  0x00129167 size=0x40 flash_erase_operation_start
+  0x001291A7 size=0xA flash_multi_read_32bits_operation_start
+  0x001291B1 size=0x8 flash_read_operation_start
+  0x001291B9 size=0x48 flash_write_status_reg_start
+  0x00129201 size=0x9E flash_multi_read
+  0x0012929F size=0x7A flash_program
+  0x00129319 size=0x34 flash_erase
+  0x0012934D size=0x16 flash_read_status_reg
+  0x00129363 size=0x8 flash_write_status_reg
+
+====================================================================================================================
+BOOT_RAM HEADER: SDKm
+path: reference/bluex-sdkm-v3.3-20210804/tools/bluex/image_tool_v2/boot_ram.bin
+file size: 0x141C
+bx_flag ASCII: 'BX24'
+bx_flag hex: 42583234
+base_addr: 0x00128000
+length: 0xFFFFFFFF
+entry_point: 0x00128219
+ota_base: 0x0
+data_base: 0x0
+total_size_64k: 0x0
+multi_read_param: 0x0000
+quad_enable_config: 0x00000000
+
+====================================================================================================================
+BOOT_RAM HEADER: SDK3
+path: reference/bluex-sdk3-v3.3.8-20250117/tools/bluex/image_tool_v2/boot_ram.bin
+file size: 0x141C
+bx_flag ASCII: 'BX24'
+bx_flag hex: 42583234
+base_addr: 0x00128000
+length: 0xFFFFFFFF
+entry_point: 0x00128219
+ota_base: 0x0
+data_base: 0x0
+total_size_64k: 0x0
+multi_read_param: 0x0000
+quad_enable_config: 0x00000000
+
+====================================================================================================================
+IMAGE CONFIG: SDKm
+path: reference/bluex-sdkm-v3.3-20210804/tools/bluex/image_tool_v2/config.ini
+valid: True
+[App]
+  ota_base = 0x40000
+  data_base = 0x70000
+[Flash]
+  total_size = 0x80000
+[Multi_Read]
+  cmd = 0x3B
+  trans_type = 0
+  wait_cycles = 8
+  dual_quad = 1
+[Quad_Enable_Read]
+  cmd = 0x35
+  quad_bit_offset = 1
+  status_length = 1
+[Quad_Enable_Write]
+  cmd = 0x01
+  quad_bit_offset = 9
+  status_length = 2
+
+====================================================================================================================
+IMAGE CONFIG: SDK3
+path: reference/bluex-sdk3-v3.3.8-20250117/tools/bluex/image_tool_v2/config.ini
+valid: True
+[App]
+  ota_base = 0x40000
+  data_base = 0x70000
+[Flash]
+  total_size = 0x80000
+[Multi_Read]
+  cmd = 0x3B
+  trans_type = 0
+  wait_cycles = 8
+  dual_quad = 1
+[Quad_Enable_Read]
+  cmd = 0x35
+  quad_bit_offset = 1
+  status_length = 1
+[Quad_Enable_Write]
+  cmd = 0x01
+  quad_bit_offset = 9
+  status_length = 2
+
+====================================================================================================================
+KEIL PROJECT: SDKm
+path: reference/bluex-sdkm-v3.3-20210804/examples/base/base/mdk/base.uvprojx
+valid: True
+selected settings:
+  TargetName: template
+  pCCUsed: 5060750::V5.06 update 6 (build 750)::ARMCC
+  uAC6: 0
+  Device: ARMCM0P
+  Vendor: ARM
+  Cpu: IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE
+  OutputDirectory: .\Objects\
+  OutputName: template
+  CreateExecutable: 1
+  CreateLib: 0
+  CreateHexFile: 1
+  DebugInformation: 1
+  ListingPath: .\Listings\
+  AdsLmap: 1
+  AdsLven: 1
+  Optim: 3
+  wLevel: 2
+  MiscControls: --bss_threshold=0
+  ScatterFile: ..\config\user_link.txt
+  TargetName: bootloader
+  pCCUsed: 5060422::V5.06 update 4 (build 422)::ARMCC
+  uAC6: 0
+  Device: ARMCM0P
+  Vendor: ARM
+  Cpu: IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE
+  OutputDirectory: ..\..\..\..\tools\bluex\bootloader\
+  OutputName: bootloader.hex
+  CreateExecutable: 1
+  CreateLib: 0
+  CreateHexFile: 1
+  DebugInformation: 1
+  ListingPath: .\Listings\
+  AdsLmap: 1
+  AdsLven: 1
+  Optim: 1
+  wLevel: 2
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+project file entries:
+  {"FileName": "main.c", "FilePath": "..\\code\\main.c", "FileType": "1"}
+  {"FileName": "startup_apollo00_mcu.s", "FilePath": "..\\code\\startup_apollo00_mcu.s", "FileType": "2"}
+  {"FileName": "app_gpio.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_gpio.c", "FileType": "1"}
+  {"FileName": "app_dmac.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac.c", "FileType": "1"}
+  {"FileName": "app_qspi.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi.c", "FileType": "1"}
+  {"FileName": "flash_base.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_base.c", "FileType": "1"}
+  {"FileName": "flash_cache.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_cache.c", "FileType": "1"}
+  {"FileName": "flash_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_integration.c", "FileType": "1"}
+  {"FileName": "io_ctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\io_ctrl.c", "FileType": "1"}
+  {"FileName": "periph_lock.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_lock.c", "FileType": "1"}
+  {"FileName": "periph_mngt.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_mngt.c", "FileType": "1"}
+  {"FileName": "periph_recovery.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_recovery.c", "FileType": "1"}
+  {"FileName": "pshare.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\pshare.c", "FileType": "1"}
+  {"FileName": "sysctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sysctrl.c", "FileType": "1"}
+  {"FileName": "adc_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\adc_integration.c", "FileType": "1"}
+  {"FileName": "app_adc.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_adc.c", "FileType": "1"}
+  {"FileName": "app_adc_utils.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_adc_utils.c", "FileType": "1"}
+  {"FileName": "rst_gen.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rst_gen.c", "FileType": "1"}
+  {"FileName": "bx_dbg.c", "FilePath": "..\\..\\..\\..\\platform\\dbg\\bx_dbg.c", "FileType": "1"}
+  {"FileName": "SEGGER_RTT.c", "FilePath": "..\\..\\..\\..\\platform\\dbg\\SEGGER_RTT.c", "FileType": "1"}
+  {"FileName": "bx_dbg_asm.s", "FilePath": "..\\..\\..\\..\\platform\\dbg\\bx_dbg_asm.s", "FileType": "2"}
+  {"FileName": "app_dmac_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac_wrapper.c", "FileType": "1"}
+  {"FileName": "app_qspi_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi_wrapper.c", "FileType": "1"}
+  {"FileName": "flash_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_wrapper.c", "FileType": "1"}
+  {"FileName": "bx_pm.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bx_pm.c", "FileType": "1"}
+  {"FileName": "bxd_adc.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_adc.c", "FileType": "1"}
+  {"FileName": "bxd_gpio.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_gpio.c", "FileType": "1"}
+  {"FileName": "bxd_iic.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_iic.c", "FileType": "1"}
+  {"FileName": "bxd_io_mux.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_io_mux.c", "FileType": "1"}
+  {"FileName": "bxd_pwm.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_pwm.c", "FileType": "1"}
+  {"FileName": "bxd_spim.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_spim.c", "FileType": "1"}
+  {"FileName": "bxd_tim.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_tim.c", "FileType": "1"}
+  {"FileName": "bxd_uart.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_uart.c", "FileType": "1"}
+  {"FileName": "bxd_wdt.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_wdt.c", "FileType": "1"}
+  {"FileName": "bx_config.h", "FilePath": "..\\config\\bx_config.h", "FileType": "5"}
+  {"FileName": "bx_sdk3_config.h", "FilePath": "..\\config\\bx_sdk3_config.h", "FileType": "5"}
+  {"FileName": "main.c", "FilePath": "..\\code\\main.c", "FileType": "1"}
+  {"FileName": "startup_apollo00_mcu.s", "FilePath": "..\\code\\startup_apollo00_mcu.s", "FileType": "2"}
+  {"FileName": "app_gpio.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_gpio.c", "FileType": "1"}
+  {"FileName": "app_dmac.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac.c", "FileType": "1"}
+  {"FileName": "app_qspi.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi.c", "FileType": "1"}
+  {"FileName": "flash_base.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_base.c", "FileType": "1"}
+  {"FileName": "flash_cache.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_cache.c", "FileType": "1"}
+  {"FileName": "flash_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_integration.c", "FileType": "1"}
+  {"FileName": "io_ctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\io_ctrl.c", "FileType": "1"}
+  {"FileName": "periph_lock.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_lock.c", "FileType": "1"}
+  {"FileName": "periph_mngt.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_mngt.c", "FileType": "1"}
+  {"FileName": "periph_recovery.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_recovery.c", "FileType": "1"}
+  {"FileName": "pshare.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\pshare.c", "FileType": "1"}
+  {"FileName": "sysctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sysctrl.c", "FileType": "1"}
+  {"FileName": "adc_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\adc_integration.c", "FileType": "1"}
+  {"FileName": "app_adc.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_adc.c", "FileType": "1"}
+  {"FileName": "app_adc_utils.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_adc_utils.c", "FileType": "1"}
+  {"FileName": "rst_gen.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rst_gen.c", "FileType": "1"}
+  {"FileName": "bx_dbg.c", "FilePath": "..\\..\\..\\..\\platform\\dbg\\bx_dbg.c", "FileType": "1"}
+  {"FileName": "SEGGER_RTT.c", "FilePath": "..\\..\\..\\..\\platform\\dbg\\SEGGER_RTT.c", "FileType": "1"}
+  {"FileName": "bx_dbg_asm.s", "FilePath": "..\\..\\..\\..\\platform\\dbg\\bx_dbg_asm.s", "FileType": "2"}
+  {"FileName": "app_dmac_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac_wrapper.c", "FileType": "1"}
+  {"FileName": "app_qspi_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi_wrapper.c", "FileType": "1"}
+  {"FileName": "flash_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_wrapper.c", "FileType": "1"}
+  {"FileName": "bx_pm.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bx_pm.c", "FileType": "1"}
+  {"FileName": "bxd_adc.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_adc.c", "FileType": "1"}
+  {"FileName": "bxd_gpio.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_gpio.c", "FileType": "1"}
+  {"FileName": "bxd_iic.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_iic.c", "FileType": "1"}
+  {"FileName": "bxd_io_mux.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_io_mux.c", "FileType": "1"}
+  {"FileName": "bxd_pwm.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_pwm.c", "FileType": "1"}
+  {"FileName": "bxd_spim.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_spim.c", "FileType": "1"}
+  {"FileName": "bxd_tim.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_tim.c", "FileType": "1"}
+  {"FileName": "bxd_uart.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_uart.c", "FileType": "1"}
+  {"FileName": "bxd_wdt.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bxd_wdt.c", "FileType": "1"}
+  {"FileName": "bx_config.h", "FilePath": "..\\config\\bx_config.h", "FileType": "5"}
+  {"FileName": "bx_sdk3_config.h", "FilePath": "..\\config\\bx_sdk3_config.h", "FileType": "5"}
+
+====================================================================================================================
+KEIL PROJECT: SDK3
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/base/base/mdk/base.uvprojx
+valid: True
+selected settings:
+  TargetName: template
+  pCCUsed: 5060960::V5.06 update 7 (build 960)::.\ARMCC
+  uAC6: 0
+  Device: ARMCM0P
+  Vendor: ARM
+  Cpu: IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE
+  OutputDirectory: .\Objects\
+  OutputName: template
+  CreateExecutable: 1
+  CreateLib: 0
+  CreateHexFile: 1
+  DebugInformation: 1
+  ListingPath: .\Listings\
+  AdsLmap: 1
+  AdsLven: 1
+  Optim: 3
+  wLevel: 2
+  MiscControls: --bss_threshold=0
+  ScatterFile: ..\config\user_link.txt
+  TargetName: bootloader
+  pCCUsed: 5060422::V5.06 update 4 (build 422)::ARMCC
+  uAC6: 0
+  Device: ARMCM0P
+  Vendor: ARM
+  Cpu: IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE
+  OutputDirectory: ..\..\..\..\tools\bluex\bootloader\
+  OutputName: bootloader.hex
+  CreateExecutable: 1
+  CreateLib: 0
+  CreateHexFile: 1
+  DebugInformation: 1
+  ListingPath: .\Listings\
+  AdsLmap: 1
+  AdsLven: 1
+  Optim: 1
+  wLevel: 2
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+  Optim: 0
+  wLevel: 0
+project file entries:
+  {"FileName": "main.c", "FilePath": "..\\code\\main.c", "FileType": "1"}
+  {"FileName": "startup_apollo00_ble.s", "FilePath": "..\\code\\startup_apollo00_ble.s", "FileType": "2"}
+  {"FileName": "bx_kernel.c", "FilePath": "..\\..\\..\\..\\kernel\\bx_kernel.c", "FileType": "1"}
+  {"FileName": "bx_kernel_timer.c", "FilePath": "..\\..\\..\\..\\kernel\\bx_kernel_timer.c", "FileType": "1"}
+  {"FileName": "ble_stack.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\ble_stack.c", "FileType": "1"}
+  {"FileName": "rwip.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\rwip.c", "FileType": "1"}
+  {"FileName": "rf_apollo.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\rf_apollo.c", "FileType": "1"}
+  {"FileName": "nvds_task.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\nvds_task.c", "FileType": "1"}
+  {"FileName": "ecc_p256.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\ecc_p256.c", "FileType": "1"}
+  {"FileName": "lld_sleep.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\lld_sleep.c", "FileType": "1"}
+  {"FileName": "nvds_in_ram.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\nvds_in_ram.c", "FileType": "1"}
+  {"FileName": "rwble.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\rwble.c", "FileType": "1"}
+  {"FileName": "app_dmac.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac.c", "FileType": "1"}
+  {"FileName": "app_dmac_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac_wrapper.c", "FileType": "1"}
+  {"FileName": "app_gpio.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_gpio.c", "FileType": "1"}
+  {"FileName": "app_hwecc.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_hwecc.c", "FileType": "1"}
+  {"FileName": "app_hwecc_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_hwecc_wrapper.c", "FileType": "1"}
+  {"FileName": "app_qspi.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi.c", "FileType": "1"}
+  {"FileName": "app_qspi_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi_wrapper.c", "FileType": "1"}
+  {"FileName": "arch_init.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\arch_init.c", "FileType": "1"}
+  {"FileName": "clk_gate.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\clk_gate.c", "FileType": "1"}
+  {"FileName": "flash_base.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_base.c", "FileType": "1"}
+  {"FileName": "flash_cache.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_cache.c", "FileType": "1"}
+  {"FileName": "flash_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_integration.c", "FileType": "1"}
+  {"FileName": "flash_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_wrapper.c", "FileType": "1"}
+  {"FileName": "io_ctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\io_ctrl.c", "FileType": "1"}
+  {"FileName": "jump_table.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\jump_table.c", "FileType": "1"}
+  {"FileName": "modem.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\modem.c", "FileType": "1"}
+  {"FileName": "patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\patch.c", "FileType": "1"}
+  {"FileName": "periph_lock.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_lock.c", "FileType": "1"}
+  {"FileName": "periph_mngt.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_mngt.c", "FileType": "1"}
+  {"FileName": "periph_recovery.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_recovery.c", "FileType": "1"}
+  {"FileName": "pshare.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\pshare.c", "FileType": "1"}
+  {"FileName": "rc_calib.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rc_calib.c", "FileType": "1"}
+  {"FileName": "rf_reg_settings_apollo_00.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_reg_settings_apollo_00.c", "FileType": "1"}
+  {"FileName": "rst_gen.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rst_gen.c", "FileType": "1"}
+  {"FileName": "sys_sleep.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sys_sleep.c", "FileType": "1"}
+  {"FileName": "sys_sleep_ram.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sys_sleep_ram.c", "FileType": "1"}
+  {"FileName": "sysctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sysctrl.c", "FileType": "1"}
+  {"FileName": "true_random.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\true_random.c", "FileType": "1"}
+  {"FileName": "adv_int_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\adv_int_patch.c", "FileType": "1"}
+  {"FileName": "adv_report_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\adv_report_patch.c", "FileType": "1"}
+  {"FileName": "lld_evt_schedule_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_evt_schedule_patch.c", "FileType": "1"}
+  {"FileName": "lld_pdu_tx_flush_list_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_pdu_tx_flush_list_patch.c", "FileType": "1"}
+  {"FileName": "lld_scan_stop.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_scan_stop.c", "FileType": "1"}
+  {"FileName": "lld_slave_instant_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_slave_instant_patch.c", "FileType": "1"}
+  {"FileName": "llm_end_evt_defer_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llm_end_evt_defer_patch.c", "FileType": "1"}
+  {"FileName": "llm_util_chk_tst_mode_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llm_util_chk_tst_mode_patch.c", "FileType": "1"}
+  {"FileName": "llm_util_gen_pattern_tx_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llm_util_gen_pattern_tx_patch.c", "FileType": "1"}
+  {"FileName": "prog_latency_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\prog_latency_patch.c", "FileType": "1"}
+  {"FileName": "rc32k_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\rc32k_patch.c", "FileType": "1"}
+  {"FileName": "scan_adv_rx_threshold_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\scan_adv_rx_threshold_patch.c", "FileType": "1"}
+  {"FileName": "scan_timeout_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\scan_timeout_patch.c", "FileType": "1"}
+  {"FileName": "set_adv_payload_31Byte_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\set_adv_payload_31Byte_patch.c", "FileType": "1"}
+  {"FileName": "slave_finetimecnt_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\slave_finetimecnt_patch.c", "FileType": "1"}
+  {"FileName": "slave_latency_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\slave_latency_patch.c", "FileType": "1"}
+  {"FileName": "smpc_construct_id_addr_type_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\smpc_construct_id_addr_type_patch.c", "FileType": "1"}
+  {"FileName": "task_id_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\task_id_patch.c", "FileType": "1"}
+  {"FileName": "adv_report_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\adv_report_patch_asm.s", "FileType": "2"}
+  {"FileName": "lld_pdu_tx_flush_list_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_pdu_tx_flush_list_patch_asm.s", "FileType": "2"}
+  {"FileName": "lld_scan_stop_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_scan_stop_patch_asm.s", "FileType": "2"}
+  {"FileName": "lld_slave_instant_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_slave_instant_patch_asm.s", "FileType": "2"}
+  {"FileName": "rc32k_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\rc32k_patch_asm.s", "FileType": "2"}
+  {"FileName": "slave_finetimecnt_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\slave_finetimecnt_patch_asm.s", "FileType": "2"}
+  {"FileName": "smpc_construct_id_addr_type_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\smpc_construct_id_addr_type_patch_asm.s", "FileType": "2"}
+  {"FileName": "task_id_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\task_id_patch_asm.s", "FileType": "2"}
+  {"FileName": "bxfs.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\bxfs\\bxfs.c", "FileType": "1"}
+  {"FileName": "bxfs_write_cache.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\bxfs\\bxfs_write_cache.c", "FileType": "1"}
+  {"FileName": "static_buffer.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\bxfs\\static_buffer.c", "FileType": "1"}
+  {"FileName": "llc_version_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llc_version_patch.c", "FileType": "1"}
+  {"FileName": "llc_version_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llc_version_patch_asm.s", "FileType": "2"}
+  {"FileName": "adc_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\adc_integration.c", "FileType": "1"}
+  {"FileName": "app_adc.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\app_adc.c", "FileType": "1"}
+  {"FileName": "app_adc_utils.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\app_adc_utils.c", "FileType": "1"}
+  {"FileName": "refresh_rf_param_with_ro.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\refresh_rf_param_with_ro.c", "FileType": "1"}
+  {"FileName": "rf_battery_adjust.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\rf_battery_adjust.c", "FileType": "1"}
+  {"FileName": "rf_power_set.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\rf_power_set.c", "FileType": "1"}
+  {"FileName": "rf_temp_adjust.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\rf_temp_adjust.c", "FileType": "1"}
+  {"FileName": "bx_dbg.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\dbg\\bx_dbg.c", "FileType": "1"}
+  {"FileName": "SEGGER_RTT.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\dbg\\SEGGER_RTT.c", "FileType": "1"}
+  {"FileName": "bx_dbg_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\dbg\\bx_dbg_asm.s", "FileType": "2"}
+  {"FileName": "bx_pm.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bx_pm.c", "FileType": "1"}
+  {"FileName": "prf.c", "FilePath": "..\\code\\profile\\prf.c", "FileType": "1"}
+  {"FileName": "prf_utils.c", "FilePath": "..\\code\\profile\\prf_utils.c", "FileType": "1"}
+  {"FileName": "app.c", "FilePath": "..\\code\\app.c", "FileType": "1"}
+  {"FileName": "ble.c", "FilePath": "..\\code\\ble.c", "FileType": "1"}
+  {"FileName": "bx_apollo00_it.c", "FilePath": "..\\code\\bx_apollo00_it.c", "FileType": "1"}
+  {"FileName": "bx_config.h", "FilePath": "..\\config\\bx_config.h", "FileType": "5"}
+  {"FileName": "bx_sys_config.h", "FilePath": "..\\config\\bx_sys_config.h", "FileType": "5"}
+  {"FileName": "bx_pcb_config.h", "FilePath": "..\\config\\bx_pcb_config.h", "FileType": "5"}
+  {"FileName": "bx_app_config.h", "FilePath": "..\\config\\bx_app_config.h", "FileType": "5"}
+  {"FileName": "bx_ip_config.h", "FilePath": "..\\config\\bx_ip_config.h", "FileType": "5"}
+  {"FileName": "bx_sdk3_config.h", "FilePath": "..\\config\\bx_sdk3_config.h", "FileType": "5"}
+  {"FileName": "rf_power_set.h", "FilePath": "..\\config\\rf_power_set.h", "FileType": "5"}
+  {"FileName": "rwapp_config.h", "FilePath": "..\\config\\rwapp_config.h", "FileType": "5"}
+  {"FileName": "main.c", "FilePath": "..\\code\\main.c", "FileType": "1"}
+  {"FileName": "startup_apollo00_ble.s", "FilePath": "..\\code\\startup_apollo00_ble.s", "FileType": "2"}
+  {"FileName": "bx_kernel.c", "FilePath": "..\\..\\..\\..\\kernel\\bx_kernel.c", "FileType": "1"}
+  {"FileName": "bx_kernel_timer.c", "FilePath": "..\\..\\..\\..\\kernel\\bx_kernel_timer.c", "FileType": "1"}
+  {"FileName": "ble_stack.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\ble_stack.c", "FileType": "1"}
+  {"FileName": "rwip.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\rwip.c", "FileType": "1"}
+  {"FileName": "rf_apollo.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\rf_apollo.c", "FileType": "1"}
+  {"FileName": "nvds_task.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\nvds_task.c", "FileType": "1"}
+  {"FileName": "ecc_p256.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\ecc_p256.c", "FileType": "1"}
+  {"FileName": "lld_sleep.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\lld_sleep.c", "FileType": "1"}
+  {"FileName": "nvds_in_ram.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\nvds_in_ram.c", "FileType": "1"}
+  {"FileName": "rwble.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\rwble.c", "FileType": "1"}
+  {"FileName": "app_dmac.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac.c", "FileType": "1"}
+  {"FileName": "app_dmac_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_dmac_wrapper.c", "FileType": "1"}
+  {"FileName": "app_gpio.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_gpio.c", "FileType": "1"}
+  {"FileName": "app_hwecc.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_hwecc.c", "FileType": "1"}
+  {"FileName": "app_hwecc_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_hwecc_wrapper.c", "FileType": "1"}
+  {"FileName": "app_qspi.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi.c", "FileType": "1"}
+  {"FileName": "app_qspi_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\app_qspi_wrapper.c", "FileType": "1"}
+  {"FileName": "arch_init.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\arch_init.c", "FileType": "1"}
+  {"FileName": "clk_gate.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\clk_gate.c", "FileType": "1"}
+  {"FileName": "flash_base.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_base.c", "FileType": "1"}
+  {"FileName": "flash_cache.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_cache.c", "FileType": "1"}
+  {"FileName": "flash_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_integration.c", "FileType": "1"}
+  {"FileName": "flash_wrapper.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\flash_wrapper.c", "FileType": "1"}
+  {"FileName": "io_ctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\io_ctrl.c", "FileType": "1"}
+  {"FileName": "jump_table.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\jump_table.c", "FileType": "1"}
+  {"FileName": "modem.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\modem.c", "FileType": "1"}
+  {"FileName": "patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\patch.c", "FileType": "1"}
+  {"FileName": "periph_lock.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_lock.c", "FileType": "1"}
+  {"FileName": "periph_mngt.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_mngt.c", "FileType": "1"}
+  {"FileName": "periph_recovery.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\periph_recovery.c", "FileType": "1"}
+  {"FileName": "pshare.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\pshare.c", "FileType": "1"}
+  {"FileName": "rc_calib.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rc_calib.c", "FileType": "1"}
+  {"FileName": "rf_reg_settings_apollo_00.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_reg_settings_apollo_00.c", "FileType": "1"}
+  {"FileName": "rst_gen.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rst_gen.c", "FileType": "1"}
+  {"FileName": "sys_sleep.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sys_sleep.c", "FileType": "1"}
+  {"FileName": "sys_sleep_ram.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sys_sleep_ram.c", "FileType": "1"}
+  {"FileName": "sysctrl.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\sysctrl.c", "FileType": "1"}
+  {"FileName": "true_random.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\true_random.c", "FileType": "1"}
+  {"FileName": "adv_int_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\adv_int_patch.c", "FileType": "1"}
+  {"FileName": "adv_report_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\adv_report_patch.c", "FileType": "1"}
+  {"FileName": "lld_evt_schedule_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_evt_schedule_patch.c", "FileType": "1"}
+  {"FileName": "lld_pdu_tx_flush_list_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_pdu_tx_flush_list_patch.c", "FileType": "1"}
+  {"FileName": "lld_scan_stop.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_scan_stop.c", "FileType": "1"}
+  {"FileName": "lld_slave_instant_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_slave_instant_patch.c", "FileType": "1"}
+  {"FileName": "llm_end_evt_defer_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llm_end_evt_defer_patch.c", "FileType": "1"}
+  {"FileName": "llm_util_chk_tst_mode_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llm_util_chk_tst_mode_patch.c", "FileType": "1"}
+  {"FileName": "llm_util_gen_pattern_tx_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llm_util_gen_pattern_tx_patch.c", "FileType": "1"}
+  {"FileName": "prog_latency_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\prog_latency_patch.c", "FileType": "1"}
+  {"FileName": "rc32k_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\rc32k_patch.c", "FileType": "1"}
+  {"FileName": "scan_adv_rx_threshold_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\scan_adv_rx_threshold_patch.c", "FileType": "1"}
+  {"FileName": "scan_timeout_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\scan_timeout_patch.c", "FileType": "1"}
+  {"FileName": "set_adv_payload_31Byte_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\set_adv_payload_31Byte_patch.c", "FileType": "1"}
+  {"FileName": "slave_finetimecnt_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\slave_finetimecnt_patch.c", "FileType": "1"}
+  {"FileName": "slave_latency_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\slave_latency_patch.c", "FileType": "1"}
+  {"FileName": "smpc_construct_id_addr_type_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\smpc_construct_id_addr_type_patch.c", "FileType": "1"}
+  {"FileName": "task_id_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\task_id_patch.c", "FileType": "1"}
+  {"FileName": "adv_report_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\adv_report_patch_asm.s", "FileType": "2"}
+  {"FileName": "lld_pdu_tx_flush_list_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_pdu_tx_flush_list_patch_asm.s", "FileType": "2"}
+  {"FileName": "lld_scan_stop_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_scan_stop_patch_asm.s", "FileType": "2"}
+  {"FileName": "lld_slave_instant_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\lld_slave_instant_patch_asm.s", "FileType": "2"}
+  {"FileName": "rc32k_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\rc32k_patch_asm.s", "FileType": "2"}
+  {"FileName": "slave_finetimecnt_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\slave_finetimecnt_patch_asm.s", "FileType": "2"}
+  {"FileName": "smpc_construct_id_addr_type_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\smpc_construct_id_addr_type_patch_asm.s", "FileType": "2"}
+  {"FileName": "task_id_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\task_id_patch_asm.s", "FileType": "2"}
+  {"FileName": "bxfs.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\bxfs\\bxfs.c", "FileType": "1"}
+  {"FileName": "bxfs_write_cache.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\bxfs\\bxfs_write_cache.c", "FileType": "1"}
+  {"FileName": "static_buffer.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\bxfs\\static_buffer.c", "FileType": "1"}
+  {"FileName": "llc_version_patch.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llc_version_patch.c", "FileType": "1"}
+  {"FileName": "llc_version_patch_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\patch\\llc_version_patch_asm.s", "FileType": "2"}
+  {"FileName": "adc_integration.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\adc_integration.c", "FileType": "1"}
+  {"FileName": "app_adc.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\app_adc.c", "FileType": "1"}
+  {"FileName": "app_adc_utils.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\app_adc_utils.c", "FileType": "1"}
+  {"FileName": "refresh_rf_param_with_ro.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\refresh_rf_param_with_ro.c", "FileType": "1"}
+  {"FileName": "rf_battery_adjust.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\rf_battery_adjust.c", "FileType": "1"}
+  {"FileName": "rf_power_set.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\rf_power_set.c", "FileType": "1"}
+  {"FileName": "rf_temp_adjust.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\controller\\driver\\rf_setting\\rf_temp_adjust.c", "FileType": "1"}
+  {"FileName": "bx_dbg.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\dbg\\bx_dbg.c", "FileType": "1"}
+  {"FileName": "SEGGER_RTT.c", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\dbg\\SEGGER_RTT.c", "FileType": "1"}
+  {"FileName": "bx_dbg_asm.s", "FilePath": "..\\..\\..\\..\\components\\bluex\\ble\\dbg\\bx_dbg_asm.s", "FileType": "2"}
+  {"FileName": "bx_pm.c", "FilePath": "..\\..\\..\\..\\platform\\bluex\\apollo\\apollo00\\driver_service\\bx_pm.c", "FileType": "1"}
+  {"FileName": "prf.c", "FilePath": "..\\code\\profile\\prf.c", "FileType": "1"}
+  {"FileName": "prf_utils.c", "FilePath": "..\\code\\profile\\prf_utils.c", "FileType": "1"}
+  {"FileName": "app.c", "FilePath": "..\\code\\app.c", "FileType": "1"}
+  {"FileName": "ble.c", "FilePath": "..\\code\\ble.c", "FileType": "1"}
+  {"FileName": "bx_apollo00_it.c", "FilePath": "..\\code\\bx_apollo00_it.c", "FileType": "1"}
+  {"FileName": "bx_config.h", "FilePath": "..\\config\\bx_config.h", "FileType": "5"}
+  {"FileName": "bx_sys_config.h", "FilePath": "..\\config\\bx_sys_config.h", "FileType": "5"}
+  {"FileName": "bx_pcb_config.h", "FilePath": "..\\config\\bx_pcb_config.h", "FileType": "5"}
+  {"FileName": "bx_app_config.h", "FilePath": "..\\config\\bx_app_config.h", "FileType": "5"}
+  {"FileName": "bx_ip_config.h", "FilePath": "..\\config\\bx_ip_config.h", "FileType": "5"}
+  {"FileName": "bx_sdk3_config.h", "FilePath": "..\\config\\bx_sdk3_config.h", "FileType": "5"}
+  {"FileName": "rf_power_set.h", "FilePath": "..\\config\\rf_power_set.h", "FileType": "5"}
+  {"FileName": "rwapp_config.h", "FilePath": "..\\config\\rwapp_config.h", "FileType": "5"}
+
+====================================================================================================================
+SDKm STARTUP COMPARISON
+
+examples/base/base/code/startup_apollo00_mcu.s
+  size: 7814
+  sha256: 7b9170bc4ea7ecad445dbb0f68922df42117f4c85e6d777ab35fbf8451c8099b
+  stack: 0x00001000
+  heap: 0x00000100
+  vector words: 35
+  xip_section present: True
+  Reset_Handler -> __main: True
+
+platform/bluex/apollo/apollo00/system/startup_apollo00.s
+  size: 7808
+  sha256: 2ede78118efae9cc53053442105be3f00fa7f3611906df4168854b1d28d9e907
+  stack: 0x00001000
+  heap: 0x00000100
+  vector words: 35
+  xip_section present: True
+  Reset_Handler -> __main: True
+
+raw identical: False
+whitespace-normalized identical: True
+
+====================================================================================================================
+RY02 STOCK FIRMWARE ALIGNMENT
+path: release/ry02-3.00.38-faster-raw-r1/RY02_3.00.38_250403.bin
+sha256: dbf64e3dc9aef112a4d69e46e516efb27f2ed2e3dc1d2d3f1af75939cc46487e
+expected SHA match: True
+container length: 0x1CD64
+expected container length: True
+payload length: 0x1CD14
+expected payload length: True
+outer magic: 0x81BDC3E5
+outer magic match: True
+inner magic: 0x0981000C
+inner magic match: True
+accepted inner code offset: 0x400
+accepted inner code runtime: 0x00824400
+accepted app physical base: 0x24400
+accepted OTA physical base: 0x4D000
+accepted config physical base: 0x1400
+plausible vector-table candidates: 20
+  payload+0x1C100 runtime=0x00840100 stack=0x00203800 reset=0x00824401 handlers=27 zero=6 invalid=0 score=87
+  payload+0x0375C runtime=0x0082775C stack=0x00208448 reset=0x008274A9 handlers=2 zero=1 invalid=30 score=-53
+  payload+0x007A8 runtime=0x008247A8 stack=0x002002C0 reset=0x00824613 handlers=2 zero=0 invalid=31 score=-56
+  payload+0x007B4 runtime=0x008247B4 stack=0x002011D4 reset=0x008339F3 handlers=1 zero=0 invalid=32 score=-61
+  payload+0x01398 runtime=0x00825398 stack=0x002088B4 reset=0x0083EFB9 handlers=1 zero=0 invalid=32 score=-61
+  payload+0x01E3C runtime=0x00825E3C stack=0x002086B0 reset=0x00825B45 handlers=1 zero=0 invalid=32 score=-61
+  payload+0x0732C runtime=0x0082B32C stack=0x0020B818 reset=0x0082B25D handlers=1 zero=0 invalid=32 score=-61
+  payload+0x07668 runtime=0x0082B668 stack=0x002087DC reset=0x0082B409 handlers=1 zero=0 invalid=32 score=-61
+  payload+0x0B6D8 runtime=0x0082F6D8 stack=0x0020BBF4 reset=0x0082F1AF handlers=1 zero=0 invalid=32 score=-61
+  payload+0x007BC runtime=0x008247BC stack=0x002011D8 reset=0x00824507 handlers=0 zero=0 invalid=33 score=-66
+  payload+0x008F0 runtime=0x008248F0 stack=0x0020866C reset=0x00824805 handlers=0 zero=0 invalid=33 score=-66
+  payload+0x009D0 runtime=0x008249D0 stack=0x0020D5DC reset=0x0082C61B handlers=0 zero=0 invalid=33 score=-66
+  payload+0x01CB8 runtime=0x00825CB8 stack=0x00208670 reset=0x0082594D handlers=0 zero=0 invalid=33 score=-66
+  payload+0x03BF0 runtime=0x00827BF0 stack=0x00209938 reset=0x00827895 handlers=0 zero=0 invalid=33 score=-66
+  payload+0x040A8 runtime=0x008280A8 stack=0x00209934 reset=0x00827D37 handlers=0 zero=0 invalid=33 score=-66
+  payload+0x06F00 runtime=0x0082AF00 stack=0x002087BC reset=0x0082AC4B handlers=0 zero=0 invalid=33 score=-66
+  payload+0x0BF40 runtime=0x0082FF40 stack=0x00208860 reset=0x0082FD8D handlers=0 zero=0 invalid=33 score=-66
+  payload+0x0C1E0 runtime=0x008301E0 stack=0x00208860 reset=0x0082FFED handlers=0 zero=0 invalid=33 score=-66
+  payload+0x0C590 runtime=0x00830590 stack=0x00208860 reset=0x00830491 handlers=0 zero=0 invalid=33 score=-66
+  payload+0x0C734 runtime=0x00830734 stack=0x00208860 reset=0x0083063B handlers=0 zero=0 invalid=33 score=-66
+body bytes after inner header: 0x1C914
+
+====================================================================================================================
+GENERIC SDK VS R02 LAYOUT MATRIX
+SDKm config ota_base: 0x40000
+SDK3 config ota_base: 0x40000
+accepted R02 OTA physical base: 0x4D000
+
+SDKm config data_base: 0x70000
+SDK3 config data_base: 0x70000
+
+SDKm config total_size: 0x80000
+SDK3 config total_size: 0x80000
+
+accepted R02 app physical base: 0x24400
+accepted R02 config physical base: 0x1400
+SDKm ota_base equals accepted R02 OTA base: False
+SDK3 ota_base equals accepted R02 OTA base: False
+
+SDKm boot_ram header versus config:
+  ota_base header/config: 0x0 / 0x40000
+  data_base header/config: 0x0 / 0x70000
+
+SDK3 boot_ram header versus config:
+  ota_base header/config: 0x0 / 0x40000
+  data_base header/config: 0x0 / 0x70000
+
+interpretation:
+  generic SDK image-tool values are reference defaults
+  they are not the accepted R02 partition map
+  no generated image is safe to install based on this comparison alone
+
+====================================================================================================================
+SUMMARY
+completed artifact, HEX, ELF, header, config, project, startup, and R02 checks
+next decision: build-only prototype after the report is reviewed
+device action: none

@@ -47,3 +47,6 @@ analysis/*token*
 *~
 /analysis/
 /reference/
+
+# Local build outputs
+/build/

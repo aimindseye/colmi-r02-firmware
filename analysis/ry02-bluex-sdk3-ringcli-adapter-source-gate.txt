@@ -1,0 +1,3238 @@
+RY02 BLUEX SDK3 RINGCLI ADAPTER SOURCE GATE
+tool revision: r2
+Python: 3.14.6
+SDK3 root: reference/bluex-sdk3-v3.3.8-20250117
+selected example: examples/demo/ble_custom_profile
+
+Interpretation boundary:
+  source extraction only
+  no SDK files are modified
+  no firmware image is built
+  no OTA or ring interaction occurs
+
+====================================================================================================================
+FILE: profile_db
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/user_profile.c
+status: present
+size: 12302
+sha256: 3c7ebfeafc15288145c82b42ec5af46daf9422b9b89fb9f7ab73bf51535d7c22
+lines: 365
+anchor 'ATT_UUID_128_LEN': PASS
+anchor 'PERM(UUID_LEN,UUID_128)': PASS
+anchor 'attm_svc_create_db_128': PASS
+anchor 'PERM(SVC_UUID_LEN,UUID_128)': PASS
+
+FULL CONTENT
+00001: /**
+00002:  ****************************************************************************************
+00003:  *
+00004:  * @file glps.c
+00005:  *
+00006:  * @brief Glucose Profile Sensor implementation.
+00007:  *
+00008:  * Copyright (C) RivieraWaves 2009-2016
+00009:  *
+00010:  *
+00011:  ****************************************************************************************
+00012:  */
+00013: 
+00014: /**
+00015:  ****************************************************************************************
+00016:  * @addtogroup GLPS
+00017:  * @{
+00018:  ****************************************************************************************
+00019:  */
+00020: 
+00021: /*
+00022:  * INCLUDE FILES
+00023:  ****************************************************************************************
+00024:  */
+00025: #include "rwip_config.h"
+00026: 
+00027: #include "gap.h"
+00028: #include "gattc_task.h"
+00029: #include "attm.h"
+00030: #include "user_profile.h"
+00031: #include "user_profile_task.h"
+00032: #include "prf_utils.h"
+00033: 
+00034: #include "ke_mem.h"
+00035: #include "co_utils.h"
+00036: 
+00037: #include "gattm_task.h"
+00038: #include "attm_db.h"
+00039: 
+00040: #ifdef IOS_SUPPORT
+00041: 
+00042: #define PTS_SVC_UUID_128         {0xA5,0x00,0x00,0xFB,0x0E,0x00,0x23,\
+00043:         0x9B,0xE1,0x11,0x02,0xD1,0x00,0x1C,0x00,0x00}
+00044: 
+00045: 
+00046: #define PTS_SVC_TX_CHAR_UUID_128 {0xA5,0x00,0x00,0xFB,0x0E,0X00,0X23,\
+00047:         0X9B,0XE1,0X11,0X02,0XD1,0X0f,0X1C,0X00,0X00}
+00048: 
+00049: 
+00050: 
+00051: #define PTS_SVC_RX_CHAR_UUID_128 {0xA5,0x00,0x00,0xFB,0x0E,0X00,0X23,\
+00052:         0X9B,0XE1,0X11,0X02,0XD1,0X01,0X1C,0X00,0X00}
+00053: #else
+00054: 
+00055: //#define PTS_SVC_UUID_128         {0xA6,0x00,0x00,0xFB,0x0E,0x00,0x23,\
+00056: //        0x9B,0xE1,0x11,0x02,0xD1,0x00,0x1C,0x00,0x00}
+00057: 
+00058: //#define PTS_SVC_TX_CHAR_UUID_128 {0xA6,0x00,0x00,0xFB,0x0E,0X00,0X23,\
+00059: //        0X9B,0XE1,0X11,0X02,0XD1,0X00,0X1C,0X00,0X00}
+00060: 
+00061: 
+00062: //#define PTS_SVC_RX_CHAR_UUID_128 {0xA6,0x00,0x00,0xFB,0x0E,0X00,0X23,\
+00063: //        0X9B,0XE1,0X11,0X02,0XD1,0X01,0X1C,0X00,0X00}
+00064: 
+00065: #define PTS_SVC_UUID_128         {0xC7,0xA5,0x00,0x5B,0x02,0x00,0x23,\
+00066:         0x9B,0x11,0xE1,0x02,0xD1,0x66,0x66,0x00,0x00}
+00067: 
+00068: #define PTS_SVC_TX_CHAR_UUID_128 {0xC7,0xA5,0x00,0x5B,0x02,0x00,0x23,\
+00069:         0x9B,0x11,0xE1,0x02,0xD1,0x66,0x66,0x00,0x00}
+00070: 
+00071: 
+00072: #define PTS_SVC_RX_CHAR_UUID_128 {0xC7,0xA5,0x00,0x5B,0x02,0x00,0x23,\
+00073:         0x9B,0x11,0xE1,0x02,0xD1,0x77,0x77,0x00,0x00}
+00074: 
+00075: #endif
+00076: 
+00077: 
+00078:         
+00079: #define PASSTHROUGH_SERVER_MAX_MTU  247
+00080: #define ATT_DESC_CLIENT_CHAR_CFG_ARRAY {0x02,0x29}
+00081: 
+00082: #define ATT_DECL_CHAR_ARRAY {0x03,0x28}
+00083: #define PTS_SVC_RX_BUF_SIZE (PASSTHROUGH_SERVER_MAX_MTU - 3)
+00084: #define PTS_SVC_TX_BUF_SIZE (PASSTHROUGH_SERVER_MAX_MTU - 3)
+00085: 
+00086: /*
+00087:  * GLOBAL VARIABLE DEFINITIONS
+00088:  ****************************************************************************************
+00089:  */
+00090: 
+00091: /// Full GLPS Database Description - Used to add attributes into the database
+00092: static const struct attm_desc_128 pts_att_db[PTS_SVC_ATT_NUM] =
+00093: {
+00094:     // Glucose Service Declaration
+00095:     [PTS_SVC_IDX_SVC]           =   {PTS_SVC_UUID_128,    PERM(RD, ENABLE), 0, 0},
+00096: 
+00097:     [PTS_SVC_IDX_RX_CHAR] = {
+00098:         .uuid = ATT_DECL_CHAR_ARRAY,
+00099:         .perm = PERM(RD,ENABLE),
+00100:         .max_size = 0,
+00101:         .ext_perm= PERM(UUID_LEN,UUID_16),
+00102:     },
+00103:     [PTS_SVC_IDX_RX_VAL] = {
+00104:         .uuid = PTS_SVC_RX_CHAR_UUID_128,
+00105:         .perm = PERM(WRITE_REQ,ENABLE)|PERM(WRITE_COMMAND,ENABLE)|PERM(WP,NO_AUTH),
+00106:         .max_size = PTS_SVC_RX_BUF_SIZE,
+00107:         .ext_perm = PERM(UUID_LEN,UUID_128)|PERM(RI,ENABLE),
+00108:     },
+00109:     [PTS_SVC_IDX_TX_CHAR] = {
+00110:         .uuid = ATT_DECL_CHAR_ARRAY,
+00111:         .perm = PERM(RD,ENABLE),
+00112:         .max_size = 0,
+00113:         .ext_perm = PERM(UUID_LEN,UUID_16),
+00114:     },
+00115:     [PTS_SVC_IDX_TX_VAL] = {
+00116: 
+00117:         .uuid = PTS_SVC_TX_CHAR_UUID_128,
+00118:         .perm = PERM(NTF,ENABLE),
+00119:         .max_size = PTS_SVC_TX_BUF_SIZE,
+00120:         .ext_perm = PERM(UUID_LEN,UUID_128)|PERM(RI,ENABLE),
+00121:     },
+00122:     [PTS_SVC_IDX_TX_NTF_CFG] = {
+00123:       .uuid = ATT_DESC_CLIENT_CHAR_CFG_ARRAY,
+00124:       .perm = PERM(RD,ENABLE)|PERM(WRITE_REQ,ENABLE),
+00125:        .max_size = 0,
+00126:        .ext_perm = PERM(UUID_LEN,UUID_16),
+00127:     },
+00128: 
+00129: };
+00130: 
+00131: uint8_t attm_svc_create_db_128(uint16_t *shdl, const uint8_t* uuid, uint8_t *cfg_flag, uint8_t max_nb_att,
+00132:                                uint8_t *att_tbl, ke_task_id_t const dest_id,
+00133:                                const struct attm_desc_128 *att_db, uint8_t svc_perm)
+00134: {
+00135:     uint8_t nb_att = 0;
+00136:     uint8_t i;
+00137:     uint8_t status = ATT_ERR_NO_ERROR;
+00138:     struct gattm_svc_desc* svc_desc;
+00139: 
+00140:     //Compute number of attributes and maximal payload size
+00141:     for (i = 1; i<max_nb_att; i++)
+00142:     {
+00143:         // check within db_cfg flag if attribute is enabled or not
+00144:         if ((cfg_flag == NULL) || (((cfg_flag[i/8] >> (i%8)) & 1) == 1))
+00145:         {
+00146:             // increment number of attribute to add
+00147:             nb_att++;
+00148:         }
+00149:     }
+00150: 
+00151:     // Allocate service information
+00152:     svc_desc = (struct gattm_svc_desc*) ke_malloc(
+00153:                 sizeof(struct gattm_svc_desc) + (sizeof(struct gattm_att_desc) * (nb_att)), KE_MEM_NON_RETENTION);
+00154: 
+00155:     // Initialize service info
+00156:     svc_desc->start_hdl = *shdl;
+00157:     svc_desc->nb_att = nb_att;
+00158:     svc_desc->task_id = dest_id;
+00159:     // ensure that service has a 16 bits UUID
+00160:     svc_desc->perm = svc_perm;
+00161: 
+00162:     // copy UUID
+00163:     memcpy(svc_desc->uuid, uuid,
+00164:             ((PERM_GET(svc_perm, SVC_UUID_LEN) == PERM_UUID_16) ? ATT_UUID_16_LEN
+00165:                 : ((PERM_GET(svc_perm, SVC_UUID_LEN) == PERM_UUID_32) ? ATT_UUID_32_LEN
+00166:                         : ATT_UUID_128_LEN)));
+00167: 
+00168:     // Set Attribute parameters
+00169:     nb_att = 0;
+00170:     for (i = 1; i<max_nb_att; i++)
+00171:     {
+00172:         // check within db_cfg flag if attribute is enabled or not
+00173:         if ((cfg_flag == NULL) || (((cfg_flag[i/8] >> (i%8)) & 1) == 1))
+00174:         {
+00175:             // fill attribute configuration
+00176: 
+00177:             // ensure that service has a 16 bits UUID
+00178:             svc_desc->atts[nb_att].max_len  = att_db[i].max_size;
+00179:             svc_desc->atts[nb_att].ext_perm = att_db[i].ext_perm;
+00180:             svc_desc->atts[nb_att].perm     = att_db[i].perm;
+00181:             // copy UUID
+00182:             memcpy(svc_desc->atts[nb_att].uuid, &(att_db[i].uuid),
+00183:                     ((PERM_GET(att_db[i].ext_perm, UUID_LEN) == PERM_UUID_16) ? ATT_UUID_16_LEN
+00184:                         : ((PERM_GET(att_db[i].ext_perm, UUID_LEN) == PERM_UUID_32) ? ATT_UUID_32_LEN
+00185:                                 : ATT_UUID_128_LEN)));
+00186: 
+00187:             // increment number of attributes
+00188:             nb_att++;
+00189:         }
+00190:     }
+00191: 
+00192:     // add service in database
+00193:     status = attmdb_add_service(svc_desc);
+00194: 
+00195:     // if service added
+00196:     if(status == ATT_ERR_NO_ERROR)
+00197:     {
+00198:         // return start handle
+00199:         *shdl = svc_desc->start_hdl;
+00200: 
+00201:         // update attribute table mapping
+00202:         nb_att = 0;
+00203:         for (i = 0; (i<max_nb_att) && (att_tbl != NULL); i++)
+00204:         {
+00205:             // check within db_cfg flag if attribute is enabled or not
+00206:             if ((cfg_flag == NULL) || (((cfg_flag[i/8] >> (i%8)) & 1) == 1))
+00207:             {
+00208:                 //Save handle offset in attribute table
+00209:                 att_tbl[i] = *shdl + nb_att;
+00210:                 // increment number of attributes
+00211:                 nb_att++;
+00212:             }
+00213:         }
+00214:     }
+00215: 
+00216:     // free service description
+00217:     ke_free(svc_desc);
+00218: 
+00219:     return (status);
+00220: }
+00221: 
+00222: 
+00223: /*
+00224:  * LOCAL FUNCTION DEFINITIONS
+00225:  ****************************************************************************************
+00226:  */
+00227: /**
+00228:  ****************************************************************************************
+00229:  * @brief Initialization of the GLPS module.
+00230:  * This function performs all the initializations of the Profile module.
+00231:  *  - Creation of database (if it's a service)
+00232:  *  - Allocation of profile required memory
+00233:  *  - Initialization of task descriptor to register application
+00234:  *      - Task State array
+00235:  *      - Number of tasks
+00236:  *      - Default task handler
+00237:  *
+00238:  * @param[out]    env        Collector or Service allocated environment data.
+00239:  * @param[in|out] start_hdl  Service start handle (0 - dynamically allocated), only applies for services.
+00240:  * @param[in]     app_task   Application task number.
+00241:  * @param[in]     sec_lvl    Security level (AUTH, EKS and MI field of @see enum attm_value_perm_mask)
+00242:  * @param[in]     param      Configuration parameters of profile collector or service (32 bits aligned)
+00243:  *
+00244:  * @return status code to know if profile initialization succeed or not.
+00245:  ****************************************************************************************
+00246:  */
+00247: static uint8_t user_init (struct prf_task_env* env, uint16_t* start_hdl, uint16_t app_task, uint8_t sec_lvl, struct user_db_cfg* params)
+00248: {
+00249:     //------------------ create the attribute database for the profile -------------------
+00250:     // DB Creation Statis
+00251:     uint8_t status = ATT_ERR_NO_ERROR;
+00252: 
+00253:     uint8_t uuid[] = PTS_SVC_UUID_128;
+00254:     // Create Glucose Database
+00255:     status = attm_svc_create_db_128(start_hdl, uuid, NULL,
+00256:             PTS_SVC_ATT_NUM, NULL, env->task, &pts_att_db[0],
+00257:             //(sec_lvl & (PERM_MASK_SVC_DIS | PERM_MASK_SVC_AUTH | PERM_MASK_SVC_EKS)) | PERM(SVC_MI, ENABLE));
+00258:             PERM(SVC_MI,DISABLE)|PERM(SVC_EKS,DISABLE)|PERM(SVC_AUTH,NO_AUTH)|PERM(SVC_UUID_LEN,UUID_128) );
+00259:     //-------------------- allocate memory required for the profile  ---------------------
+00260:     if (status == ATT_ERR_NO_ERROR)
+00261:     {
+00262:         // Allocate GLPS required environment variable
+00263:         struct user_profile_env_tag* glps_env =
+00264:                 (struct user_profile_env_tag* ) ke_malloc(sizeof(struct user_profile_env_tag), KE_MEM_ATT_DB);
+00265: 
+00266: 		
+00267:         // Initialize GLPS environment
+00268:         env->env                      = (prf_env_t*) glps_env;
+00269:         glps_env->start_hdl           = *start_hdl;
+00270:         glps_env->features            = params->features;
+00271:         glps_env->prf_env.app_task    = app_task
+00272:                 | (PERM_GET(sec_lvl, SVC_MI) ? PERM(PRF_MI, ENABLE) : PERM(PRF_MI, DISABLE));
+00273:         glps_env->prf_env.prf_task    = env->task | PERM(PRF_MI, ENABLE);
+00274: 
+00275:         // initialize environment variable
+00276:         env->id                     = TASK_ID_USER;
+00277:         env->desc.idx_max           = 1;
+00278:         env->desc.state             = glps_env->state;
+00279:         env->desc.default_handler   = &userp_default_handler;
+00280: 
+00281:         ke_state_set(env->task, USER_PROFILE_IDLE);
+00282:     }
+00283: 
+00284:     return (status);
+00285: }
+00286: 
+00287: /**
+00288:  ****************************************************************************************
+00289:  * @brief Destruction of the GLPS module - due to a reset for instance.
+00290:  * This function clean-up allocated memory (attribute database is destroyed by another
+00291:  * procedure)
+00292:  *
+00293:  * @param[in|out]    env        Collector or Service allocated environment data.
+00294:  ****************************************************************************************
+00295:  */
+00296: static void user_destroy(struct prf_task_env* env)
+00297: {
+00298:     struct user_profile_env_tag* user_env = (struct user_profile_env_tag*) env->env;
+00299: 
+00300:     // remove all values present in list
+00301:     while(!co_list_is_empty(&(user_env->values)))
+00302:     {
+00303:         struct co_list_hdr* hdr = co_list_pop_front(&(user_env->values));
+00304:         ke_free(hdr);
+00305:     }
+00306: 
+00307: 
+00308:     // free profile environment variables
+00309:     env->env = NULL;
+00310:     ke_free(user_env);
+00311: }
+00312: 
+00313: /**
+00314:  ****************************************************************************************
+00315:  * @brief Handles Connection creation
+00316:  *
+00317:  * @param[in|out]    env        Collector or Service allocated environment data.
+00318:  * @param[in]        conidx     Connection index
+00319:  ****************************************************************************************
+00320:  */
+00321: static void user_create(struct prf_task_env* env, uint8_t conidx)
+00322: {
+00323: 
+00324: }
+00325: 
+00326: /**
+00327:  ****************************************************************************************
+00328:  * @brief Handles Disconnection
+00329:  *
+00330:  * @param[in|out]    env        Collector or Service allocated environment data.
+00331:  * @param[in]        conidx     Connection index
+00332:  * @param[in]        reason     Detach reason
+00333:  ****************************************************************************************
+00334:  */
+00335: static void user_cleanup(struct prf_task_env* env, uint8_t conidx, uint8_t reason)
+00336: {
+00337: 
+00338: }
+00339: 
+00340: /*
+00341:  * GLOBAL VARIABLE DEFINITIONS
+00342:  ****************************************************************************************
+00343:  */
+00344: 
+00345: /// GLPS Task interface required by profile manager
+00346: const struct prf_task_cbs user_itf =
+00347: {
+00348:         (prf_init_fnct) user_init,
+00349:         user_destroy,
+00350:         user_create,
+00351:         user_cleanup,
+00352: };
+00353: 
+00354: /*
+00355:  * EXPORTED FUNCTIONS DEFINITIONS
+00356:  ****************************************************************************************
+00357:  */
+00358: 
+00359: const struct prf_task_cbs* user_profile_prf_itf_get(void)
+00360: {
+00361:    return &user_itf;
+00362: }
+00363: 
+00364: 
+00365: /// @} GLPS
+
+====================================================================================================================
+FILE: profile_task
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/user_profile_task.c
+status: present
+size: 5425
+sha256: 59c060c53af8d8195d1fbf58dfdb33e912410bdf9144355d8735d68fdc49a267
+lines: 157
+anchor 'GATTC_WRITE_REQ_IND': PASS
+anchor 'gattc_write_req_ind_handler': PASS
+
+FULL CONTENT
+00001: /**
+00002:  ****************************************************************************************
+00003:  *
+00004:  * @file hfp_task.c
+00005:  *
+00006:  * @brief Glucose Profile Sensor Task Implementation.
+00007:  *
+00008:  * Copyright (C) RivieraWaves 2009-2016
+00009:  *
+00010:  *
+00011:  ****************************************************************************************
+00012:  */
+00013: 
+00014: /**
+00015:  ****************************************************************************************
+00016:  * @addtogroup GLPSTASK
+00017:  * @{
+00018:  ****************************************************************************************
+00019:  */
+00020: 
+00021: /*
+00022:  * INCLUDE FILES
+00023:  ****************************************************************************************
+00024:  */
+00025: 
+00026: #include "rwip_config.h"
+00027: 
+00028: 
+00029: #include "gap.h"
+00030: #include "gattc_task.h"
+00031: #include "user_profile.h"
+00032: #include "user_profile_task.h"
+00033: #include "prf_utils.h"
+00034: 
+00035: #include "ke_mem.h"
+00036: #include "co_utils.h"
+00037: 
+00038: #include "bx_dbg.h"
+00039: #include "bx_kernel.h"
+00040: /*
+00041:  *  GLUCOSE PROFILE ATTRIBUTES
+00042:  ****************************************************************************************
+00043:  */
+00044: 
+00045: 
+00046: /*
+00047:  * LOCAL FUNCTIONS DEFINITIONS
+00048:  ****************************************************************************************
+00049:  */
+00050: 
+00051: /**
+00052:  ****************************************************************************************
+00053:  * @brief Handles reception of the @ref GATT_CODE_ATT_WR_CMD_IND message.
+00054:  * The handler compares the new values with current ones and notifies them if they changed.
+00055:  * @param[in] msgid Id of the message received (probably unused).
+00056:  * @param[in] param Pointer to the parameters of the message.
+00057:  * @param[in] dest_id ID of the receiving task instance (probably unused).
+00058:  * @param[in] src_id ID of the sending task instance.
+00059:  * @return If the message was consumed or not.
+00060:  ****************************************************************************************
+00061:  */
+00062: static int gattc_write_req_ind_handler(ke_msg_id_t const msgid,
+00063:                                       struct gattc_write_req_ind *param,
+00064:                                       ke_task_id_t const dest_id,
+00065:                                       ke_task_id_t const src_id)
+00066: {
+00067: //    bxsh_logln("user gattc_write_req_ind_handler");
+00068:     uint8_t state  = ke_state_get(dest_id);
+00069:     if(state == USER_PROFILE_IDLE)
+00070:     {
+00071:         uint8_t status = GAP_ERR_NO_ERROR;
+00072:         struct gattc_write_cfm * cfm;
+00073: 
+00074:         //Send write response
+00075:         cfm = KE_MSG_ALLOC(GATTC_WRITE_CFM, src_id, dest_id, gattc_write_cfm);
+00076:         cfm->handle = param->handle;
+00077:         cfm->status = status;
+00078:         ke_msg_send(cfm);
+00079:         
+00080:     }
+00081:     return (KE_MSG_CONSUMED);
+00082: }
+00083: 
+00084: 
+00085: /**
+00086:  ****************************************************************************************
+00087:  * @brief Handles reception of the read request from peer device
+00088:  *
+00089:  * @param[in] msgid Id of the message received (probably unused).
+00090:  * @param[in] param Pointer to the parameters of the message.
+00091:  * @param[in] dest_id ID of the receiving task instance (probably unused).
+00092:  * @param[in] src_id ID of the sending task instance.
+00093:  * @return If the message was consumed or not.
+00094:  ****************************************************************************************
+00095:  */
+00096: static int gattc_read_req_ind_handler(ke_msg_id_t const msgid,
+00097:                                       struct gattc_read_req_ind const *param,
+00098:                                       ke_task_id_t const dest_id,
+00099:                                       ke_task_id_t const src_id)
+00100: {
+00101: //    bxsh_logln("user gattc_read_req_ind_handler");
+00102:     ke_state_t state = ke_state_get(dest_id);
+00103: 
+00104:     if(state == USER_PROFILE_IDLE)
+00105:     {
+00106:         // Send value to peer device.
+00107:         struct gattc_read_cfm* cfm = KE_MSG_ALLOC_DYN(GATTC_READ_CFM, src_id, dest_id, gattc_read_cfm, 1);
+00108:         cfm->handle = param->handle;
+00109:         cfm->status = ATT_ERR_NO_ERROR;
+00110:         cfm->length = 1;
+00111:         cfm->value[0] = 0; 
+00112:         ke_msg_send(cfm);
+00113:     }
+00114: 
+00115:     return (KE_MSG_CONSUMED);
+00116: }
+00117: 
+00118: 
+00119: /**
+00120:  ****************************************************************************************
+00121:  * @brief Handles @ref GATTC_CMP_EVT for GATTC_NOTIFY and GATT_INDICATE message meaning
+00122:  * that Measurement notification/indication has been correctly sent to peer device
+00123:  *
+00124:  *
+00125:  * @param[in] msgid     Id of the message received.
+00126:  * @param[in] param     Pointer to the parameters of the message.
+00127:  * @param[in] dest_id   ID of the receiving task instance
+00128:  * @param[in] src_id    ID of the sending task instance.
+00129:  * @return If the message was consumed or not.
+00130:  ****************************************************************************************
+00131:  */
+00132: static int gattc_cmp_evt_handler(ke_msg_id_t const msgid, struct gattc_cmp_evt const *param,
+00133:                                  ke_task_id_t const dest_id, ke_task_id_t const src_id)
+00134: {
+00135:     bx_logln("gattc_cmp_evt_handler");
+00136: 
+00137:     return (KE_MSG_CONSUMED);
+00138: }
+00139: 
+00140: /*
+00141:  * GLOBAL VARIABLE DEFINITIONS
+00142:  ****************************************************************************************
+00143:  */
+00144: 
+00145: /// Default State handlers definition
+00146: const struct ke_msg_handler user_default_handler[] =
+00147: {
+00148:     {GATTC_WRITE_REQ_IND,                 (ke_msg_func_t) gattc_write_req_ind_handler},
+00149:     {GATTC_READ_REQ_IND,                  (ke_msg_func_t) gattc_read_req_ind_handler},
+00150:     {GATTC_CMP_EVT,                       (ke_msg_func_t) gattc_cmp_evt_handler},
+00151: };
+00152: 
+00153: /// Specifies the message handlers that are common to all states.
+00154: const struct ke_state_handler userp_default_handler = KE_STATE_HANDLER(user_default_handler);
+00155: 
+00156: 
+00157: /// @} GLPSTASK
+
+====================================================================================================================
+FILE: profile_task_header
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/user_profile_task.h
+status: present
+size: 3719
+sha256: 215a7e851e4d55ff8952068e7091a53adf4cbe433b4161be68ddfc92f4e43f0c
+lines: 162
+
+FULL CONTENT
+00001: /**
+00002:  ****************************************************************************************
+00003:  *
+00004:  * @file diss_task.h
+00005:  *
+00006:  * @brief Header file - USERTASK.
+00007:  *
+00008:  * Copyright (C) RivieraWaves 2009-2016
+00009:  *
+00010:  *
+00011:  ****************************************************************************************
+00012:  */
+00013: 
+00014: #ifndef USER_PROFILE_TASK_H_
+00015: #define USER_PROFILE_TASK_H_
+00016: 
+00017: /**
+00018:  ****************************************************************************************
+00019:  * @addtogroup USERTASK Task
+00020:  * @ingroup USER
+00021:  * @brief Device Information Service Server Task
+00022:  * @{
+00023:  ****************************************************************************************
+00024:  */
+00025: 
+00026: /*
+00027:  * INCLUDE FILES
+00028:  ****************************************************************************************
+00029:  */
+00030: #include <stdint.h>
+00031: #include "rwip_task.h" // Task definitions
+00032: #include "prf_types.h"
+00033: 
+00034: /*
+00035:  * DEFINES
+00036:  ****************************************************************************************
+00037:  */
+00038: 
+00039: 
+00040: 
+00041: /// Messages for Glucose Profile Sensor
+00042: enum user_msg_id
+00043: {
+00044:     /// Start the Glucose Profile Sensor - at connection
+00045:     USER_ENABLE_REQ = TASK_FIRST_MSG(TASK_ID_USER),
+00046:     /// Confirm that Glucose Profile Sensor is started.
+00047:     USER_ENABLE_RSP,
+00048: 
+00049:     ///Inform APP of new configuration value
+00050:     USER_CFG_INDNTF_IND,
+00051: 
+00052:     /// Record Access Control Point Request
+00053:     USER_RACP_REQ_RCV_IND,
+00054: 
+00055:     /// Record Access Control Point Resp
+00056:     USER_SEND_RACP_RSP_CMD,
+00057: 
+00058:     /// Send Glucose measurement with context information
+00059:     USER_SEND_MEAS_WITH_CTX_CMD,
+00060:     /// Send Glucose measurement without context information
+00061:     USER_SEND_MEAS_WITHOUT_CTX_CMD,
+00062: 
+00063:     ///Inform that requested action has been performed
+00064:     USER_CMP_EVT,
+00065: };
+00066: ///Attribute Table Indexes
+00067: enum user_info
+00068: {
+00069:     /// Manufacturer Name
+00070:     USER_MANUFACTURER_NAME_CHAR,
+00071:     /// Model Number
+00072:     USER_MODEL_NB_STR_CHAR,
+00073: 
+00074:     USER_CHAR_MAX,
+00075: };
+00076: 
+00077: ///Database Configuration Flags
+00078: enum user_features
+00079: {
+00080:     ///Indicate if Manufacturer Name String Char. is supported
+00081:     USER_MANUFACTURER_NAME_CHAR_SUP       = 0x0001,
+00082:     ///Indicate if Model Number String Char. is supported
+00083:     USER_MODEL_NB_STR_CHAR_SUP            = 0x0002,
+00084:     
+00085:     
+00086:     USER_ALL_SUP = 0X3,
+00087: };
+00088: /*
+00089:  * API MESSAGES STRUCTURES
+00090:  ****************************************************************************************
+00091:  */
+00092: 
+00093: /// Parameters for the database creation
+00094: struct user_db_cfg
+00095: {
+00096:     /// Database configuration @see enum diss_features
+00097:     uint16_t features;
+00098: };
+00099: /// Parameters of the @ref USER_ENABLE_REQ message
+00100: struct user_enable_req
+00101: {
+00102:     /// Glucose indication/notification configuration
+00103:     uint16_t evt_cfg;
+00104: };
+00105: 
+00106: ///Parameters of the @ref USER_ENABLE_RSP message
+00107: struct user_enable_rsp
+00108: {
+00109:     ///Status
+00110:     uint8_t status;
+00111: };
+00112: 
+00113: ///Parameters of the @ref USER_CFG_INDNTF_IND message
+00114: struct user_cfg_indntf_ind
+00115: {
+00116:     /// Glucose indication/notification configuration
+00117:     uint8_t evt_cfg;
+00118: };
+00119: 
+00120: ///Parameters of the @ref USER_SEND_MEAS_WITH_CTX_CMD message
+00121: struct user_send_meas_with_ctx_cmd
+00122: {
+00123:     /// Sequence Number
+00124:     uint16_t seq_num;
+00125: };
+00126: 
+00127: 
+00128: ///Parameters of the @ref USER_SEND_MEAS_WITHOUT_CTX_CMD message
+00129: struct user_send_meas_without_ctx_cmd
+00130: {
+00131:     /// Sequence Number
+00132:     uint16_t seq_num;
+00133: };
+00134: 
+00135: 
+00136: ///Parameters of the @ref USER_RACP_REQ_RCV_IND message
+00137: struct user_racp_req_rcv_ind
+00138: {
+00139:     uint8_t a;
+00140: };
+00141: 
+00142: ///Parameters of the @ref USER_SEND_RACP_RSP_CMD message
+00143: struct user_send_racp_rsp_cmd
+00144: {
+00145:     ///Number of records.
+00146:     uint16_t num_of_record;
+00147:     /// operation code
+00148:     uint8_t op_code;
+00149:     ///Command status
+00150:     uint8_t status;
+00151: };
+00152: 
+00153: ///Parameters of the @ref USER_CMP_EVT message
+00154: struct user_cmp_evt
+00155: {
+00156:     /// completed request
+00157:     uint8_t request;
+00158:     ///Command status
+00159:     uint8_t status;
+00160: };
+00161: /// @} USERTASK
+00162: #endif // USER_TASK_H_
+
+====================================================================================================================
+FILE: profile_header
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/user_profile.h
+status: present
+size: 4562
+sha256: 51e38b3eade5c1fbe5162ee5569169dc7f7492761684e1d3b85c6948661f807a
+lines: 167
+
+FULL CONTENT
+00001: /**
+00002:  ****************************************************************************************
+00003:  *
+00004:  * @file diss.h
+00005:  *
+00006:  * @brief Header file - Device Information Service Server.
+00007:  *
+00008:  * Copyright (C) RivieraWaves 2009-2016
+00009:  *
+00010:  *
+00011:  ****************************************************************************************
+00012:  */
+00013: 
+00014: #ifndef USER_PROFILE_H_
+00015: #define USER_PROFILE_H_
+00016: 
+00017: /**
+00018:  ****************************************************************************************
+00019:  * @addtogroup DISS Device Information Service Server
+00020:  * @ingroup DIS
+00021:  * @brief Device Information Service Server
+00022:  * @{
+00023:  ****************************************************************************************
+00024:  */
+00025: 
+00026: /*
+00027:  * INCLUDE FILES
+00028:  ****************************************************************************************
+00029:  */
+00030: #include "rwip_config.h"
+00031: 
+00032: #include "prf_types.h"
+00033: #include "prf.h"
+00034: 
+00035: /*
+00036:  * DEFINES
+00037:  ****************************************************************************************
+00038:  */
+00039: 
+00040: #define USER_PROFILE_IDX_MAX        (1)
+00041: 
+00042: /*
+00043:  * ENUMERATIONS
+00044:  ****************************************************************************************
+00045:  */
+00046: 
+00047: /// Possible states of the DISS task
+00048: enum
+00049: {
+00050:     /// Idle state
+00051:     USER_PROFILE_IDLE,
+00052:     /// Busy state
+00053:     USER_PROFILE_BUSY,
+00054:     /// Number of defined states.
+00055:     USER_PROFILE_STATE_MAX
+00056: };
+00057: 
+00058: /// DISS Attributes database handle list
+00059: enum user_profile_att_db_handles
+00060: {
+00061:     PTS_SVC_IDX_SVC,
+00062: 
+00063:     PTS_SVC_IDX_RX_CHAR,
+00064:     PTS_SVC_IDX_RX_VAL,
+00065:     PTS_SVC_IDX_TX_CHAR,
+00066:     PTS_SVC_IDX_TX_VAL,
+00067:     PTS_SVC_IDX_TX_NTF_CFG,
+00068:     
+00069:     PTS_SVC_ATT_NUM
+00070: };
+00071: 
+00072: /// Value element
+00073: struct user_profile_val_elmt
+00074: {
+00075:     /// list element header
+00076:     struct co_list_hdr hdr;
+00077:     /// value identifier
+00078:     uint8_t value;
+00079:     /// value length
+00080:     uint8_t length;
+00081:     /// value data
+00082:     uint8_t data[__ARRAY_EMPTY];
+00083: };
+00084: 
+00085: ///Device Information Service Server Environment Variable
+00086: struct user_profile_env_tag
+00087: {
+00088:     /// profile environment
+00089:     prf_env_t prf_env;
+00090:     /// List of values set by application
+00091:     struct co_list values;
+00092:     /// Service Attribute Start Handle
+00093:     uint16_t start_hdl;
+00094:     /// Services features
+00095:     uint16_t features;
+00096:     /// Last requested value
+00097:     uint8_t  req_val;
+00098:     /// Last connection index which request value
+00099:     uint8_t  req_conidx;
+00100: 
+00101:     /// DISS task state
+00102:     ke_state_t state[USER_PROFILE_IDX_MAX];
+00103: };
+00104: 
+00105: /*
+00106:  * GLOBAL VARIABLE DECLARATIONS
+00107:  ****************************************************************************************
+00108:  */
+00109: 
+00110: /*
+00111:  * FUNCTION DECLARATIONS
+00112:  ****************************************************************************************
+00113:  */
+00114: 
+00115: /**
+00116:  ****************************************************************************************
+00117:  * @brief Retrieve DIS service profile interface
+00118:  *
+00119:  * @return DIS service profile interface
+00120:  ****************************************************************************************
+00121:  */
+00122: const struct prf_task_cbs* user_profile_prf_itf_get(void);
+00123: 
+00124: 
+00125: /**
+00126:  ****************************************************************************************
+00127:  * @brief Check if the provided value length matches characteristic requirements
+00128:  * @param char_code Characteristic Code
+00129:  * @param val_len   Length of the Characteristic value
+00130:  *
+00131:  * @return status if value length is ok or not
+00132:  ****************************************************************************************
+00133:  */
+00134: uint8_t user_profile_check_val_len(uint8_t char_code, uint8_t val_len);
+00135: 
+00136: /**
+00137:  ****************************************************************************************
+00138:  * @brief Retrieve handle attribute from value
+00139:  *
+00140:  * @param[in] env   Service environment variable
+00141:  * @param[in] value Value to search
+00142:  *
+00143:  * @return Handle attribute from value
+00144:  ****************************************************************************************
+00145:  */
+00146: uint16_t user_profile_value_to_handle(struct user_profile_env_tag* env, uint8_t value);
+00147: 
+00148: /**
+00149:  ****************************************************************************************
+00150:  * @brief Retrieve value from attribute handle
+00151:  *
+00152:  * @param[in] env    Service environment variable
+00153:  * @param[in] handle Attribute handle to search
+00154:  *
+00155:  * @return  Value from attribute handle
+00156:  ****************************************************************************************
+00157:  */
+00158: uint8_t user_profile_handle_to_value(struct user_profile_env_tag* env, uint16_t handle);
+00159: 
+00160: /*
+00161:  * TASK DESCRIPTOR DECLARATIONS
+00162:  ****************************************************************************************
+00163:  */
+00164: extern const struct ke_state_handler userp_default_handler;
+00165: 
+00166: #endif //BLE_USER_PROFILE_SERVER
+00167: 
+
+====================================================================================================================
+FILE: app
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/app.c
+status: present
+size: 5762
+sha256: bae5ec33fb593329089ed91cdf10a65a6293dda7385752810974b13a76f0e9b0
+lines: 168
+anchor 'gapm_start_advertise_cmd': PASS
+anchor 'ble_advertising_start': PASS
+
+matched windows: 2
+
+--- lines 20..53 ---
+00020: 
+00021: #include "app_dis.h"
+00022: 
+00023: /* private define ------------------------------------------------------------*/
+00024: 
+00025: /* private typedef -----------------------------------------------------------*/
+00026: typedef void ( *appm_add_svc_func_t )( void );
+00027: /* private variables ---------------------------------------------------------*/
+00028: uint8_t user_scan_rsp_data[] = {
+00029:     0x08,   // length of this data
+00030:     GAP_AD_TYPE_COMPLETE_NAME, //type of this data
+00031:     'B','X', '-', 'S', 'D', 'K', '3'
+00032: };
+00033: 
+00034: // GAP - Advertisement data (max size = (28) bytes)
+00035: uint8_t user_adv_data[] = {
+00036:     0x08,// length of this data
+00037:     GAP_AD_TYPE_SHORTENED_NAME,//type of this data
+00038:     'B','X', '-', 'S', 'D', 'K', '3'
+00039: };
+00040: 
+00041: 
+00042: static const appm_add_svc_func_t appm_add_svc_func_list[] = {
+00043:     (appm_add_svc_func_t)app_dis_add_dis,
+00044:     (appm_add_svc_func_t)app_user_add_profile,
+00045: };
+00046: 
+00047: /* exported variables --------------------------------------------------------*/
+00048: 
+00049: 
+00050: 
+00051: /*============================= private function =============================*/
+00052: 
+00053: /*========================= end of private function ==========================*/
+
+--- lines 96..158 ---
+00096: /** ---------------------------------------------------------------------------
+00097:  * @brief   :
+00098:  * @note    :
+00099:  * @param   :
+00100:  * @retval  :
+00101: -----------------------------------------------------------------------------*/
+00102: void app_on_ble_ready( void )
+00103: {
+00104:     struct gapm_start_advertise_cmd adv_data;
+00105:     adv_data.op.addr_src    = GAPM_STATIC_ADDR;
+00106:     adv_data.channel_map    = ADV_ALL_CHNLS_EN;
+00107:     adv_data.intv_max   = 160;//unit is 625 us
+00108:     adv_data.intv_min   = 160;//unit is 625 us
+00109:     adv_data.op.code    = GAPM_ADV_UNDIRECT;
+00110:     adv_data.info.host.mode = GAP_GEN_DISCOVERABLE;
+00111:     adv_data.info.host.adv_data_len = sizeof( user_adv_data );
+00112:     adv_data.info.host.scan_rsp_data_len  = sizeof( user_scan_rsp_data );
+00113:     adv_data.info.host.adv_filt_policy = ADV_ALLOW_SCAN_ANY_CON_ANY;
+00114:     memcpy( adv_data.info.host.adv_data, user_adv_data, sizeof( user_adv_data ) );
+00115:     memcpy( adv_data.info.host.scan_rsp_data, user_scan_rsp_data, sizeof( user_scan_rsp_data ) );
+00116: 
+00117:     ble_advertising_start( &adv_data );
+00118: }
+00119: /** ---------------------------------------------------------------------------
+00120:  * @brief   :
+00121:  * @note    :
+00122:  * @param   :
+00123:  * @retval  :
+00124: -----------------------------------------------------------------------------*/
+00125: void app_on_ble_disconnect( void )
+00126: {
+00127:     struct gapm_start_advertise_cmd adv_data;
+00128:     adv_data.op.addr_src    = GAPM_STATIC_ADDR;
+00129:     adv_data.channel_map    = ADV_ALL_CHNLS_EN;
+00130:     adv_data.intv_max   = 160;//unit is 625 us
+00131:     adv_data.intv_min   = 160;//unit is 625 us
+00132:     adv_data.op.code    = GAPM_ADV_UNDIRECT;
+00133:     adv_data.info.host.mode = GAP_GEN_DISCOVERABLE;
+00134:     adv_data.info.host.adv_data_len = sizeof( user_adv_data );
+00135:     adv_data.info.host.scan_rsp_data_len  = sizeof( user_scan_rsp_data );
+00136:     adv_data.info.host.adv_filt_policy = ADV_ALLOW_SCAN_ANY_CON_ANY;
+00137:     memcpy( adv_data.info.host.adv_data, user_adv_data, sizeof( user_adv_data ) );
+00138:     memcpy( adv_data.info.host.scan_rsp_data, user_scan_rsp_data, sizeof( user_scan_rsp_data ) );
+00139: 
+00140:     ble_advertising_start( &adv_data );
+00141: }
+00142: /** ---------------------------------------------------------------------------
+00143:  * @brief   :
+00144:  * @note    :
+00145:  * @param   :
+00146:  * @retval  :
+00147: -----------------------------------------------------------------------------*/
+00148: void app_init( void )
+00149: {
+00150: 
+00151: }
+00152: /*========================= end of exported function =========================*/
+00153: 
+00154: 
+00155: /*============================= import function ==============================*/
+00156: 
+00157: /*=========================== end of import function =========================*/
+00158: 
+
+====================================================================================================================
+FILE: app_header
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/app.h
+status: present
+size: 3109
+sha256: 3f720ea8709c37aecbad50f6f26ff18384c4351dbc24253552aae1fea538b6bf
+lines: 118
+
+====================================================================================================================
+FILE: ble
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/ble.c
+status: present
+size: 18288
+sha256: 4bd638ade6eb6713457335f3e787bbfd597cc44a55c3050746af6aad4b2b6dd8
+lines: 551
+anchor 'GAPM_START_ADVERTISE_CMD': PASS
+anchor 'KE_MSG_ALLOC': PASS
+
+matched windows: 4
+
+--- lines 53..144 ---
+00053: }
+00054: 
+00055: /** ---------------------------------------------------------------------------
+00056:  * @brief   :
+00057:  * @note    :
+00058:  * @param   :
+00059:  * @retval  :
+00060: -----------------------------------------------------------------------------*/
+00061: void ble_advertising_start(struct gapm_start_advertise_cmd *adv_data)
+00062: {
+00063: 
+00064:     struct gapm_start_advertise_cmd * adv_cmd = KE_MSG_ALLOC( GAPM_START_ADVERTISE_CMD,
+00065:             TASK_GAPM, TASK_APP,
+00066:             gapm_start_advertise_cmd );
+00067:     
+00068:     * adv_cmd = * adv_data;
+00069:     ke_msg_send( adv_cmd );
+00070: }
+00071: 
+00072: 
+00073: /** ---------------------------------------------------------------------------
+00074:  * @brief   :
+00075:  * @note    :
+00076:  * @param   :
+00077:  * @retval  :
+00078: -----------------------------------------------------------------------------*/
+00079: void ble_advertising_stop( void )
+00080: {
+00081:     struct gapm_cancel_cmd * cmd = KE_MSG_ALLOC( GAPM_CANCEL_CMD, TASK_GAPM, TASK_APP, gapm_cancel_cmd );
+00082: 
+00083:     cmd->operation = GAPM_CANCEL;
+00084:     ke_msg_send( cmd );
+00085: }
+00086: 
+00087: 
+00088: /** ---------------------------------------------------------------------------
+00089:  * @brief   :
+00090:  * @note    :
+00091:  * @param   :
+00092:  * @retval  :
+00093: -----------------------------------------------------------------------------*/
+00094: void ble_disconnect( void )
+00095: {
+00096:     struct gapc_disconnect_cmd * discon_cmd = KE_MSG_ALLOC( GAPC_DISCONNECT_CMD, TASK_GAPC, TASK_APP, gapc_disconnect_cmd );
+00097: 
+00098:     discon_cmd->operation = GAPC_DISCONNECT;
+00099:     discon_cmd->reason = CO_ERROR_REMOTE_USER_TERM_CON;
+00100: 
+00101:     ke_msg_send( discon_cmd );
+00102: }
+00103: 
+00104: /** ---------------------------------------------------------------------------
+00105:  * @brief   :
+00106:  * @note    :
+00107:  * @param   :
+00108:  * @retval  :
+00109: -----------------------------------------------------------------------------*/
+00110: void ble_update_con_param( struct gapc_conn_param * conn_param )
+00111: {
+00112:     // Prepare the GAPC_PARAM_UPDATE_CMD message
+00113:     struct gapc_param_update_cmd * cmd = KE_MSG_ALLOC( GAPC_PARAM_UPDATE_CMD,TASK_GAPC, TASK_APP,gapc_param_update_cmd );
+00114: 
+00115:     cmd->operation  = GAPC_UPDATE_PARAMS;
+00116:     cmd->intv_min   = conn_param->intv_min;
+00117:     cmd->intv_max   = conn_param->intv_max;
+00118:     cmd->latency    = conn_param->latency;
+00119:     cmd->time_out   = conn_param->time_out;
+00120: 
+00121:     // not used by a slave device
+00122:     cmd->ce_len_min = 0xFFFF;
+00123:     cmd->ce_len_max = 0xFFFF;
+00124: 
+00125:     // Send the message
+00126:     ke_msg_send( cmd );
+00127: }
+00128: 
+00129: 
+00130: /* exported variables --------------------------------------------------------*/
+00131: /** ---------------------------------------------------------------------------
+00132:  * @brief   :
+00133:  * @note    :
+00134:  * @param   :
+00135:  * @retval  :
+00136: -----------------------------------------------------------------------------*/
+00137: static uint8_t appm_get_handler( const struct ke_state_handler * handler_list,
+00138:                                  ke_msg_id_t msgid,
+00139:                                  void * param,
+00140:                                  ke_task_id_t src_id )
+00141: {
+00142:     uint8_t counter;
+00143: 
+00144:     for ( counter = handler_list->msg_cnt; 0 < counter; counter-- ) {
+
+--- lines 161..247 ---
+00161:  * @retval  :
+00162: -----------------------------------------------------------------------------*/
+00163: static int gapm_device_ready_ind_handler( ke_msg_id_t const msgid,
+00164:         void const * param,
+00165:         ke_task_id_t const dest_id,
+00166:         ke_task_id_t const src_id )
+00167: {
+00168:     ASSERT_ERR( ke_state_get( dest_id ) == APP_INIT );
+00169:     struct gapm_reset_cmd * cmd = KE_MSG_ALLOC( GAPM_RESET_CMD,
+00170:                                   TASK_GAPM, TASK_APP,
+00171:                                   gapm_reset_cmd );
+00172:     cmd->operation = GAPM_RESET;
+00173:     ke_msg_send( cmd );
+00174:     return ( KE_MSG_CONSUMED );
+00175: }
+00176: 
+00177: /** ---------------------------------------------------------------------------
+00178:  * @brief   :
+00179:  * @note    :
+00180:  * @param   :
+00181:  * @retval  :
+00182: -----------------------------------------------------------------------------*/
+00183: static int gapm_cmp_evt_handler( ke_msg_id_t const msgid,
+00184:                                  struct gapm_cmp_evt const * param,
+00185:                                  ke_task_id_t const dest_id,
+00186:                                  ke_task_id_t const src_id )
+00187: {
+00188:     switch( param->operation ) {
+00189:         case ( GAPM_RESET ): {
+00190:             if( param->status == GAP_ERR_NO_ERROR ) {
+00191:                 struct gapm_set_dev_config_cmd * cmd = KE_MSG_ALLOC( GAPM_SET_DEV_CONFIG_CMD,
+00192:                                                        TASK_GAPM, TASK_APP,
+00193:                                                        gapm_set_dev_config_cmd );
+00194:                 app_set_dev_cfg(cmd);
+00195:                 ke_msg_send( cmd );
+00196:                 ke_msg_send_basic( BKT_MSG_CREAT_TIMER, TASK_BX_KERNEL_TIMER, TASK_BX_KERNEL_TIMER );
+00197:             } else {
+00198:                 ASSERT_ERR( 0 );
+00199:             }
+00200:         }
+00201:         break;
+00202:         case ( GAPM_PROFILE_TASK_ADD ): {
+00203:             struct gapm_gen_rand_nb_cmd * cmd = KE_MSG_ALLOC( GAPM_GEN_RAND_NB_CMD,
+00204:                                                 TASK_GAPM, TASK_APP,
+00205:                                                 gapm_gen_rand_nb_cmd );
+00206:             cmd->operation   = GAPM_GEN_RAND_NB;
+00207:             app_env.rand_cnt = 1;
+00208:             ke_msg_send( cmd );
+00209:         }
+00210:         break;
+00211: 
+00212:         case ( GAPM_GEN_RAND_NB ) : {
+00213:             if ( app_env.rand_cnt == 1 ) {
+00214:                 app_env.rand_cnt++;
+00215:                 struct gapm_gen_rand_nb_cmd * cmd = KE_MSG_ALLOC( GAPM_GEN_RAND_NB_CMD,
+00216:                                                     TASK_GAPM, TASK_APP,
+00217:                                                     gapm_gen_rand_nb_cmd );
+00218:                 cmd->operation = GAPM_GEN_RAND_NB;
+00219:                 ke_msg_send( cmd );
+00220:             } else {
+00221:                 struct gapm_set_irk_cmd * cmd = KE_MSG_ALLOC( GAPM_SET_IRK_CMD,
+00222:                                                 TASK_GAPM, TASK_APP,
+00223:                                                 gapm_set_irk_cmd );
+00224: 
+00225:                 app_env.rand_cnt = 0;
+00226:                 cmd->operation = GAPM_SET_IRK;
+00227:                 memcpy( &cmd->irk.key[0], &app_env.loc_irk[0], KEY_LEN );
+00228: 
+00229:                 ke_msg_send( cmd );
+00230:             }
+00231:         }
+00232:         break;
+00233: 
+00234:         case ( GAPM_SET_IRK ): {
+00235:             app_env.rand_cnt = 0;
+00236: 
+00237:             if ( !app_add_svc() ) {
+00238:                 ke_state_set(TASK_APP, APP_READY);
+00239:                 
+00240:                 app_on_ble_ready();
+00241:             }
+00242:         }
+00243:         break;
+00244: 
+00245:         case ( GAPM_SET_DEV_CONFIG ): {
+00246:             ASSERT_INFO( param->status == GAP_ERR_NO_ERROR, param->operation, param->status );
+00247: 
+
+--- lines 276..386 ---
+00276: -----------------------------------------------------------------------------*/
+00277: static int gapc_get_dev_info_req_ind_handler( ke_msg_id_t const msgid,
+00278:         struct gapc_get_dev_info_req_ind const * param,
+00279:         ke_task_id_t const dest_id,
+00280:         ke_task_id_t const src_id )
+00281: {
+00282:     switch( param->req ) {
+00283:         case GAPC_DEV_NAME: {
+00284:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC_DYN( GAPC_GET_DEV_INFO_CFM,
+00285:                                                  src_id, dest_id,
+00286:                                                  gapc_get_dev_info_cfm, APP_DEVICE_NAME_MAX_LEN );
+00287: 
+00288:             cfm->req = param->req;
+00289:             cfm->info.name.length = app_get_dev_name( cfm->info.name.value );
+00290:             ke_msg_send( cfm );
+00291:         }
+00292:         break;
+00293: 
+00294:         case GAPC_DEV_APPEARANCE: {
+00295:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_GET_DEV_INFO_CFM,
+00296:                                                  src_id, dest_id,
+00297:                                                  gapc_get_dev_info_cfm );
+00298:             cfm->req = param->req;
+00299:             cfm->info.appearance=0;
+00300:             ke_msg_send( cfm );
+00301:         }
+00302:         break;
+00303: 
+00304:         case GAPC_DEV_SLV_PREF_PARAMS: {
+00305:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_GET_DEV_INFO_CFM,
+00306:                                                  src_id, dest_id,
+00307:                                                  gapc_get_dev_info_cfm );
+00308:             cfm->req = param->req;            
+00309:             cfm->info.slv_params.con_intv_min = 8;
+00310:             cfm->info.slv_params.con_intv_max = 10;
+00311:             cfm->info.slv_params.slave_latency = 0;
+00312:             cfm->info.slv_params.conn_timeout = 200;
+00313:             ke_msg_send( cfm );
+00314:         }
+00315:         break;
+00316: 
+00317:         default:
+00318:             break;
+00319:     }
+00320: 
+00321: 
+00322:     return ( KE_MSG_CONSUMED );
+00323: }
+00324: 
+00325: /** ---------------------------------------------------------------------------
+00326:  * @brief   :
+00327:  * @note    :
+00328:  * @param   :
+00329:  * @retval  :
+00330: -----------------------------------------------------------------------------*/
+00331: static int gapc_set_dev_info_req_ind_handler( ke_msg_id_t const msgid,
+00332:         struct gapc_set_dev_info_req_ind const * param,
+00333:         ke_task_id_t const dest_id,
+00334:         ke_task_id_t const src_id )
+00335: {
+00336:     // Set Device configuration
+00337:     struct gapc_set_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_SET_DEV_INFO_CFM, src_id, dest_id,
+00338:                                          gapc_set_dev_info_cfm );
+00339:     cfm->status = GAP_ERR_REJECTED;
+00340:     cfm->req = param->req;
+00341:     ke_msg_send( cfm );
+00342: 
+00343:     return ( KE_MSG_CONSUMED );
+00344: }
+00345: 
+00346: /** ---------------------------------------------------------------------------
+00347:  * @brief   :
+00348:  * @note    :
+00349:  * @param   :
+00350:  * @retval  :
+00351: -----------------------------------------------------------------------------*/
+00352: static int gapc_connection_req_ind_handler( ke_msg_id_t const msgid,
+00353:         struct gapc_connection_req_ind const * param,
+00354:         ke_task_id_t const dest_id,
+00355:         ke_task_id_t const src_id )
+00356: {
+00357:     app_env.conidx = KE_IDX_GET( src_id );
+00358: 
+00359:     if ( app_env.conidx != GAP_INVALID_CONIDX ) {
+00360:         app_env.conhdl = param->conhdl;
+00361: 
+00362: 
+00363:         struct gapc_connection_cfm * cfm = KE_MSG_ALLOC( GAPC_CONNECTION_CFM,
+00364:                                            KE_BUILD_ID( TASK_GAPC, app_env.conidx ), TASK_APP,
+00365:                                            gapc_connection_cfm );
+00366: 
+00367:         cfm->auth=GAP_AUTH_REQ_NO_MITM_NO_BOND;
+00368:         ke_msg_send( cfm );
+00369:     } else {
+00370:         app_on_ble_connect_fail();
+00371:     }
+00372: 
+00373:     return ( KE_MSG_CONSUMED );
+00374: }
+00375: /** ---------------------------------------------------------------------------
+00376:  * @brief   :
+00377:  * @note    :
+00378:  * @param   :
+00379:  * @retval  :
+00380: -----------------------------------------------------------------------------*/
+00381: static int gapc_cmp_evt_handler( ke_msg_id_t const msgid,
+00382:                                  struct gapc_cmp_evt const * param,
+00383:                                  ke_task_id_t const dest_id,
+00384:                                  ke_task_id_t const src_id )
+00385: {
+00386:     switch( param->operation ) {
+
+--- lines 475..507 ---
+00475: /** ---------------------------------------------------------------------------
+00476:  * @brief   :
+00477:  * @note    :
+00478:  * @param   :
+00479:  * @retval  :
+00480: -----------------------------------------------------------------------------*/
+00481: static void osapp_gapc_param_update_cfm( ke_msg_id_t const msgid, void const * param, ke_task_id_t const dest_id, ke_task_id_t const src_id )
+00482: {
+00483:     struct gapc_param_update_cfm * cfm = KE_MSG_ALLOC( GAPC_PARAM_UPDATE_CFM,
+00484:                                          src_id, dest_id,
+00485:                                          gapc_param_update_cfm );
+00486:     cfm->accept = 0x01;
+00487:     cfm->ce_len_max = 0xffff;
+00488:     cfm->ce_len_min = 0xffff;
+00489:     ke_msg_send( cfm );
+00490: }
+00491: 
+00492: /** ---------------------------------------------------------------------------
+00493:  * @brief   :
+00494:  * @note    :
+00495:  * @param   :
+00496:  * @retval  :
+00497: -----------------------------------------------------------------------------*/
+00498: static int gattc_cmp_evt_handler( ke_msg_id_t const msgid, struct gattc_cmp_evt const * param,
+00499:                                   ke_task_id_t const dest_id, ke_task_id_t const src_id )
+00500: {
+00501: 
+00502:     return ( KE_MSG_CONSUMED );
+00503: }
+00504: 
+00505: 
+00506: const struct ke_msg_handler appm_default_state[] = {
+00507:     {KE_MSG_DEFAULT_HANDLER,    ( ke_msg_func_t )msg_default_handler},
+
+====================================================================================================================
+FILE: ble_header
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/code/ble.h
+status: present
+size: 1754
+sha256: 1f2502900f64d1957f431d4c71d5a7769b35f3a49c76013f83fbf9fee239097f
+lines: 60
+
+====================================================================================================================
+FILE: project
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/demo/ble_custom_profile/mdk/ble_custom_profile.uvprojx
+status: present
+size: 100172
+sha256: 687c0068c0493f1bfc1581b88f48ad7c655b4f9da95fae00ce667fbc16bc06be
+lines: 2557
+
+matched windows: 7
+
+--- lines 2..28 ---
+00002: <Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">
+00003: 
+00004:   <SchemaVersion>2.1</SchemaVersion>
+00005: 
+00006:   <Header>### uVision Project, (C) Keil Software</Header>
+00007: 
+00008:   <Targets>
+00009:     <Target>
+00010:       <TargetName>template</TargetName>
+00011:       <ToolsetNumber>0x4</ToolsetNumber>
+00012:       <ToolsetName>ARM-ADS</ToolsetName>
+00013:       <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
+00014:       <uAC6>0</uAC6>
+00015:       <TargetOption>
+00016:         <TargetCommonOption>
+00017:           <Device>ARMCM0P</Device>
+00018:           <Vendor>ARM</Vendor>
+00019:           <PackID>ARM.CMSIS.5.8.0</PackID>
+00020:           <PackURL>http://www.keil.com/pack/</PackURL>
+00021:           <Cpu>IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE</Cpu>
+00022:           <FlashUtilSpec></FlashUtilSpec>
+00023:           <StartupFile></StartupFile>
+00024:           <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000)</FlashDriverDll>
+00025:           <DeviceId>0</DeviceId>
+00026:           <RegisterFile>$$Device:ARMCM0P$Device\ARM\ARMCM0plus\Include\ARMCM0plus.h</RegisterFile>
+00027:           <MemoryEnv></MemoryEnv>
+00028:           <Cmp></Cmp>
+
+--- lines 44..70 ---
+00044:           <TargetStatus>
+00045:             <Error>0</Error>
+00046:             <ExitCodeStop>0</ExitCodeStop>
+00047:             <ButtonStop>0</ButtonStop>
+00048:             <NotGenerated>0</NotGenerated>
+00049:             <InvalidFlash>1</InvalidFlash>
+00050:           </TargetStatus>
+00051:           <OutputDirectory>.\Objects\</OutputDirectory>
+00052:           <OutputName>template</OutputName>
+00053:           <CreateExecutable>1</CreateExecutable>
+00054:           <CreateLib>0</CreateLib>
+00055:           <CreateHexFile>1</CreateHexFile>
+00056:           <DebugInformation>1</DebugInformation>
+00057:           <BrowseInformation>1</BrowseInformation>
+00058:           <ListingPath>.\Listings\</ListingPath>
+00059:           <HexFormatSelection>1</HexFormatSelection>
+00060:           <Merge32K>0</Merge32K>
+00061:           <CreateBatchFile>0</CreateBatchFile>
+00062:           <BeforeCompile>
+00063:             <RunUserProg1>0</RunUserProg1>
+00064:             <RunUserProg2>0</RunUserProg2>
+00065:             <UserProg1Name></UserProg1Name>
+00066:             <UserProg2Name></UserProg2Name>
+00067:             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
+00068:             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
+00069:             <nStopU1X>0</nStopU1X>
+00070:             <nStopU2X>0</nStopU2X>
+
+--- lines 365..413 ---
+00365:             <Ropi>0</Ropi>
+00366:             <Rwpi>0</Rwpi>
+00367:             <noStLib>0</noStLib>
+00368:             <RepFail>1</RepFail>
+00369:             <useFile>0</useFile>
+00370:             <TextAddressRange>0x00000000</TextAddressRange>
+00371:             <DataAddressRange>0x20000000</DataAddressRange>
+00372:             <pXoBase></pXoBase>
+00373:             <ScatterFile>..\config\user_link.txt</ScatterFile>
+00374:             <IncludeLibs></IncludeLibs>
+00375:             <IncludeLibsPath></IncludeLibsPath>
+00376:             <Misc>--diag_suppress=L6314,L6329
+00377: ..\..\..\..\components\bluex\ble\controller\rom_syms_armcc.txt  --datacompressor=off</Misc>
+00378:             <LinkerInputFile></LinkerInputFile>
+00379:             <DisabledWarnings></DisabledWarnings>
+00380:           </LDads>
+00381:         </TargetArmAds>
+00382:       </TargetOption>
+00383:       <Groups>
+00384:         <Group>
+00385:           <GroupName>bx/core</GroupName>
+00386:           <Files>
+00387:             <File>
+00388:               <FileName>main.c</FileName>
+00389:               <FileType>1</FileType>
+00390:               <FilePath>..\code\main.c</FilePath>
+00391:             </File>
+00392:             <File>
+00393:               <FileName>startup_apollo00_ble.s</FileName>
+00394:               <FileType>2</FileType>
+00395:               <FilePath>..\code\startup_apollo00_ble.s</FilePath>
+00396:             </File>
+00397:             <File>
+00398:               <FileName>bx_kernel.c</FileName>
+00399:               <FileType>1</FileType>
+00400:               <FilePath>..\..\..\..\kernel\bx_kernel.c</FilePath>
+00401:             </File>
+00402:             <File>
+00403:               <FileName>bx_kernel_timer.c</FileName>
+00404:               <FileType>1</FileType>
+00405:               <FilePath>..\..\..\..\kernel\bx_kernel_timer.c</FilePath>
+00406:             </File>
+00407:           </Files>
+00408:         </Group>
+00409:         <Group>
+00410:           <GroupName>bx/ble</GroupName>
+00411:           <Files>
+00412:             <File>
+00413:               <FileName>ble_stack.c</FileName>
+
+--- lines 923..949 ---
+00923:               <FileType>5</FileType>
+00924:               <FilePath>..\config\rwapp_config.h</FilePath>
+00925:             </File>
+00926:           </Files>
+00927:         </Group>
+00928:       </Groups>
+00929:     </Target>
+00930:     <Target>
+00931:       <TargetName>bootloader</TargetName>
+00932:       <ToolsetNumber>0x4</ToolsetNumber>
+00933:       <ToolsetName>ARM-ADS</ToolsetName>
+00934:       <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
+00935:       <uAC6>0</uAC6>
+00936:       <TargetOption>
+00937:         <TargetCommonOption>
+00938:           <Device>ARMCM0P</Device>
+00939:           <Vendor>ARM</Vendor>
+00940:           <PackID>ARM.CMSIS.5.8.0</PackID>
+00941:           <PackURL>http://www.keil.com/pack/</PackURL>
+00942:           <Cpu>IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE</Cpu>
+00943:           <FlashUtilSpec></FlashUtilSpec>
+00944:           <StartupFile></StartupFile>
+00945:           <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000)</FlashDriverDll>
+00946:           <DeviceId>0</DeviceId>
+00947:           <RegisterFile>$$Device:ARMCM0P$Device\ARM\ARMCM0plus\Include\ARMCM0plus.h</RegisterFile>
+00948:           <MemoryEnv></MemoryEnv>
+00949:           <Cmp></Cmp>
+
+--- lines 965..991 ---
+00965:           <TargetStatus>
+00966:             <Error>0</Error>
+00967:             <ExitCodeStop>0</ExitCodeStop>
+00968:             <ButtonStop>0</ButtonStop>
+00969:             <NotGenerated>0</NotGenerated>
+00970:             <InvalidFlash>1</InvalidFlash>
+00971:           </TargetStatus>
+00972:           <OutputDirectory>..\..\..\..\tools\bluex\bootloader\</OutputDirectory>
+00973:           <OutputName>bootloader.hex</OutputName>
+00974:           <CreateExecutable>1</CreateExecutable>
+00975:           <CreateLib>0</CreateLib>
+00976:           <CreateHexFile>1</CreateHexFile>
+00977:           <DebugInformation>1</DebugInformation>
+00978:           <BrowseInformation>1</BrowseInformation>
+00979:           <ListingPath>.\Listings\</ListingPath>
+00980:           <HexFormatSelection>1</HexFormatSelection>
+00981:           <Merge32K>0</Merge32K>
+00982:           <CreateBatchFile>0</CreateBatchFile>
+00983:           <BeforeCompile>
+00984:             <RunUserProg1>0</RunUserProg1>
+00985:             <RunUserProg2>0</RunUserProg2>
+00986:             <UserProg1Name></UserProg1Name>
+00987:             <UserProg2Name></UserProg2Name>
+00988:             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
+00989:             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
+00990:             <nStopU1X>0</nStopU1X>
+00991:             <nStopU2X>0</nStopU2X>
+
+--- lines 1286..1312 ---
+01286:             <Ropi>0</Ropi>
+01287:             <Rwpi>0</Rwpi>
+01288:             <noStLib>0</noStLib>
+01289:             <RepFail>1</RepFail>
+01290:             <useFile>0</useFile>
+01291:             <TextAddressRange>0x00000000</TextAddressRange>
+01292:             <DataAddressRange>0x20000000</DataAddressRange>
+01293:             <pXoBase></pXoBase>
+01294:             <ScatterFile></ScatterFile>
+01295:             <IncludeLibs></IncludeLibs>
+01296:             <IncludeLibsPath></IncludeLibsPath>
+01297:             <Misc></Misc>
+01298:             <LinkerInputFile></LinkerInputFile>
+01299:             <DisabledWarnings></DisabledWarnings>
+01300:           </LDads>
+01301:         </TargetArmAds>
+01302:       </TargetOption>
+01303:       <Groups>
+01304:         <Group>
+01305:           <GroupName>bx/core</GroupName>
+01306:           <GroupOption>
+01307:             <CommonProperty>
+01308:               <UseCPPCompiler>0</UseCPPCompiler>
+01309:               <RVCTCodeConst>0</RVCTCodeConst>
+01310:               <RVCTZI>0</RVCTZI>
+01311:               <RVCTOtherData>0</RVCTOtherData>
+01312:               <ModuleSelection>0</ModuleSelection>
+
+--- lines 1374..1402 ---
+01374:           </GroupOption>
+01375:           <Files>
+01376:             <File>
+01377:               <FileName>main.c</FileName>
+01378:               <FileType>1</FileType>
+01379:               <FilePath>..\code\main.c</FilePath>
+01380:             </File>
+01381:             <File>
+01382:               <FileName>startup_apollo00_ble.s</FileName>
+01383:               <FileType>2</FileType>
+01384:               <FilePath>..\code\startup_apollo00_ble.s</FilePath>
+01385:             </File>
+01386:             <File>
+01387:               <FileName>bx_kernel.c</FileName>
+01388:               <FileType>1</FileType>
+01389:               <FilePath>..\..\..\..\kernel\bx_kernel.c</FilePath>
+01390:             </File>
+01391:             <File>
+01392:               <FileName>bx_kernel_timer.c</FileName>
+01393:               <FileType>1</FileType>
+01394:               <FilePath>..\..\..\..\kernel\bx_kernel_timer.c</FilePath>
+01395:             </File>
+01396:           </Files>
+01397:         </Group>
+01398:         <Group>
+01399:           <GroupName>bx/ble</GroupName>
+01400:           <GroupOption>
+01401:             <CommonProperty>
+01402:               <UseCPPCompiler>0</UseCPPCompiler>
+
+====================================================================================================================
+FILE: base_project
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/base/base/mdk/base.uvprojx
+status: present
+size: 98171
+sha256: 9b0c3bfd7145c1583cd79db9e0f0f9757adfa1e2017190f88888db3beb82209b
+lines: 2498
+anchor 'startup_apollo00_ble.s': PASS
+anchor 'user_link.txt': PASS
+
+matched windows: 7
+
+--- lines 2..28 ---
+00002: <Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">
+00003: 
+00004:   <SchemaVersion>2.1</SchemaVersion>
+00005: 
+00006:   <Header>### uVision Project, (C) Keil Software</Header>
+00007: 
+00008:   <Targets>
+00009:     <Target>
+00010:       <TargetName>template</TargetName>
+00011:       <ToolsetNumber>0x4</ToolsetNumber>
+00012:       <ToolsetName>ARM-ADS</ToolsetName>
+00013:       <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
+00014:       <uAC6>0</uAC6>
+00015:       <TargetOption>
+00016:         <TargetCommonOption>
+00017:           <Device>ARMCM0P</Device>
+00018:           <Vendor>ARM</Vendor>
+00019:           <PackID>ARM.CMSIS.5.8.0</PackID>
+00020:           <PackURL>http://www.keil.com/pack/</PackURL>
+00021:           <Cpu>IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE</Cpu>
+00022:           <FlashUtilSpec></FlashUtilSpec>
+00023:           <StartupFile></StartupFile>
+00024:           <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000)</FlashDriverDll>
+00025:           <DeviceId>0</DeviceId>
+00026:           <RegisterFile>$$Device:ARMCM0P$Device\ARM\ARMCM0plus\Include\ARMCM0plus.h</RegisterFile>
+00027:           <MemoryEnv></MemoryEnv>
+00028:           <Cmp></Cmp>
+
+--- lines 44..70 ---
+00044:           <TargetStatus>
+00045:             <Error>0</Error>
+00046:             <ExitCodeStop>0</ExitCodeStop>
+00047:             <ButtonStop>0</ButtonStop>
+00048:             <NotGenerated>0</NotGenerated>
+00049:             <InvalidFlash>1</InvalidFlash>
+00050:           </TargetStatus>
+00051:           <OutputDirectory>.\Objects\</OutputDirectory>
+00052:           <OutputName>template</OutputName>
+00053:           <CreateExecutable>1</CreateExecutable>
+00054:           <CreateLib>0</CreateLib>
+00055:           <CreateHexFile>1</CreateHexFile>
+00056:           <DebugInformation>1</DebugInformation>
+00057:           <BrowseInformation>1</BrowseInformation>
+00058:           <ListingPath>.\Listings\</ListingPath>
+00059:           <HexFormatSelection>1</HexFormatSelection>
+00060:           <Merge32K>0</Merge32K>
+00061:           <CreateBatchFile>0</CreateBatchFile>
+00062:           <BeforeCompile>
+00063:             <RunUserProg1>0</RunUserProg1>
+00064:             <RunUserProg2>0</RunUserProg2>
+00065:             <UserProg1Name></UserProg1Name>
+00066:             <UserProg2Name></UserProg2Name>
+00067:             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
+00068:             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
+00069:             <nStopU1X>0</nStopU1X>
+00070:             <nStopU2X>0</nStopU2X>
+
+--- lines 365..413 ---
+00365:             <Ropi>0</Ropi>
+00366:             <Rwpi>0</Rwpi>
+00367:             <noStLib>0</noStLib>
+00368:             <RepFail>1</RepFail>
+00369:             <useFile>0</useFile>
+00370:             <TextAddressRange>0x00000000</TextAddressRange>
+00371:             <DataAddressRange>0x20000000</DataAddressRange>
+00372:             <pXoBase></pXoBase>
+00373:             <ScatterFile>..\config\user_link.txt</ScatterFile>
+00374:             <IncludeLibs></IncludeLibs>
+00375:             <IncludeLibsPath></IncludeLibsPath>
+00376:             <Misc>--diag_suppress=L6314,L6329
+00377: ..\..\..\..\components\bluex\ble\controller\rom_syms_armcc.txt  --datacompressor=off</Misc>
+00378:             <LinkerInputFile></LinkerInputFile>
+00379:             <DisabledWarnings></DisabledWarnings>
+00380:           </LDads>
+00381:         </TargetArmAds>
+00382:       </TargetOption>
+00383:       <Groups>
+00384:         <Group>
+00385:           <GroupName>bx/core</GroupName>
+00386:           <Files>
+00387:             <File>
+00388:               <FileName>main.c</FileName>
+00389:               <FileType>1</FileType>
+00390:               <FilePath>..\code\main.c</FilePath>
+00391:             </File>
+00392:             <File>
+00393:               <FileName>startup_apollo00_ble.s</FileName>
+00394:               <FileType>2</FileType>
+00395:               <FilePath>..\code\startup_apollo00_ble.s</FilePath>
+00396:             </File>
+00397:             <File>
+00398:               <FileName>bx_kernel.c</FileName>
+00399:               <FileType>1</FileType>
+00400:               <FilePath>..\..\..\..\kernel\bx_kernel.c</FilePath>
+00401:             </File>
+00402:             <File>
+00403:               <FileName>bx_kernel_timer.c</FileName>
+00404:               <FileType>1</FileType>
+00405:               <FilePath>..\..\..\..\kernel\bx_kernel_timer.c</FilePath>
+00406:             </File>
+00407:           </Files>
+00408:         </Group>
+00409:         <Group>
+00410:           <GroupName>bx/ble</GroupName>
+00411:           <Files>
+00412:             <File>
+00413:               <FileName>ble_stack.c</FileName>
+
+--- lines 898..924 ---
+00898:               <FileType>5</FileType>
+00899:               <FilePath>..\config\rwapp_config.h</FilePath>
+00900:             </File>
+00901:           </Files>
+00902:         </Group>
+00903:       </Groups>
+00904:     </Target>
+00905:     <Target>
+00906:       <TargetName>bootloader</TargetName>
+00907:       <ToolsetNumber>0x4</ToolsetNumber>
+00908:       <ToolsetName>ARM-ADS</ToolsetName>
+00909:       <pCCUsed>5060422::V5.06 update 4 (build 422)::ARMCC</pCCUsed>
+00910:       <uAC6>0</uAC6>
+00911:       <TargetOption>
+00912:         <TargetCommonOption>
+00913:           <Device>ARMCM0P</Device>
+00914:           <Vendor>ARM</Vendor>
+00915:           <PackID>ARM.CMSIS.5.8.0</PackID>
+00916:           <PackURL>http://www.keil.com/pack/</PackURL>
+00917:           <Cpu>IRAM(0x20000000,0x00020000) IROM(0x00000000,0x00040000) CPUTYPE("Cortex-M0+") CLOCK(12000000) ESEL ELITTLE</Cpu>
+00918:           <FlashUtilSpec></FlashUtilSpec>
+00919:           <StartupFile></StartupFile>
+00920:           <FlashDriverDll>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000)</FlashDriverDll>
+00921:           <DeviceId>0</DeviceId>
+00922:           <RegisterFile>$$Device:ARMCM0P$Device\ARM\ARMCM0plus\Include\ARMCM0plus.h</RegisterFile>
+00923:           <MemoryEnv></MemoryEnv>
+00924:           <Cmp></Cmp>
+
+--- lines 940..966 ---
+00940:           <TargetStatus>
+00941:             <Error>0</Error>
+00942:             <ExitCodeStop>0</ExitCodeStop>
+00943:             <ButtonStop>0</ButtonStop>
+00944:             <NotGenerated>0</NotGenerated>
+00945:             <InvalidFlash>1</InvalidFlash>
+00946:           </TargetStatus>
+00947:           <OutputDirectory>..\..\..\..\tools\bluex\bootloader\</OutputDirectory>
+00948:           <OutputName>bootloader.hex</OutputName>
+00949:           <CreateExecutable>1</CreateExecutable>
+00950:           <CreateLib>0</CreateLib>
+00951:           <CreateHexFile>1</CreateHexFile>
+00952:           <DebugInformation>1</DebugInformation>
+00953:           <BrowseInformation>1</BrowseInformation>
+00954:           <ListingPath>.\Listings\</ListingPath>
+00955:           <HexFormatSelection>1</HexFormatSelection>
+00956:           <Merge32K>0</Merge32K>
+00957:           <CreateBatchFile>0</CreateBatchFile>
+00958:           <BeforeCompile>
+00959:             <RunUserProg1>0</RunUserProg1>
+00960:             <RunUserProg2>0</RunUserProg2>
+00961:             <UserProg1Name></UserProg1Name>
+00962:             <UserProg2Name></UserProg2Name>
+00963:             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
+00964:             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
+00965:             <nStopU1X>0</nStopU1X>
+00966:             <nStopU2X>0</nStopU2X>
+
+--- lines 1261..1287 ---
+01261:             <Ropi>0</Ropi>
+01262:             <Rwpi>0</Rwpi>
+01263:             <noStLib>0</noStLib>
+01264:             <RepFail>1</RepFail>
+01265:             <useFile>0</useFile>
+01266:             <TextAddressRange>0x00000000</TextAddressRange>
+01267:             <DataAddressRange>0x20000000</DataAddressRange>
+01268:             <pXoBase></pXoBase>
+01269:             <ScatterFile></ScatterFile>
+01270:             <IncludeLibs></IncludeLibs>
+01271:             <IncludeLibsPath></IncludeLibsPath>
+01272:             <Misc></Misc>
+01273:             <LinkerInputFile></LinkerInputFile>
+01274:             <DisabledWarnings></DisabledWarnings>
+01275:           </LDads>
+01276:         </TargetArmAds>
+01277:       </TargetOption>
+01278:       <Groups>
+01279:         <Group>
+01280:           <GroupName>bx/core</GroupName>
+01281:           <GroupOption>
+01282:             <CommonProperty>
+01283:               <UseCPPCompiler>0</UseCPPCompiler>
+01284:               <RVCTCodeConst>0</RVCTCodeConst>
+01285:               <RVCTZI>0</RVCTZI>
+01286:               <RVCTOtherData>0</RVCTOtherData>
+01287:               <ModuleSelection>0</ModuleSelection>
+
+--- lines 1349..1377 ---
+01349:           </GroupOption>
+01350:           <Files>
+01351:             <File>
+01352:               <FileName>main.c</FileName>
+01353:               <FileType>1</FileType>
+01354:               <FilePath>..\code\main.c</FilePath>
+01355:             </File>
+01356:             <File>
+01357:               <FileName>startup_apollo00_ble.s</FileName>
+01358:               <FileType>2</FileType>
+01359:               <FilePath>..\code\startup_apollo00_ble.s</FilePath>
+01360:             </File>
+01361:             <File>
+01362:               <FileName>bx_kernel.c</FileName>
+01363:               <FileType>1</FileType>
+01364:               <FilePath>..\..\..\..\kernel\bx_kernel.c</FilePath>
+01365:             </File>
+01366:             <File>
+01367:               <FileName>bx_kernel_timer.c</FileName>
+01368:               <FileType>1</FileType>
+01369:               <FilePath>..\..\..\..\kernel\bx_kernel_timer.c</FilePath>
+01370:             </File>
+01371:           </Files>
+01372:         </Group>
+01373:         <Group>
+01374:           <GroupName>bx/ble</GroupName>
+01375:           <GroupOption>
+01376:             <CommonProperty>
+01377:               <UseCPPCompiler>0</UseCPPCompiler>
+
+====================================================================================================================
+FILE: base_linker
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/base/base/config/user_link.txt
+status: present
+size: 1710
+sha256: e3d07ac21972e62e911f7db05f6dc4df6edaa7687d214b4ec8630dd269fd8e5d
+lines: 81
+anchor 'FLASH_MAPPED_ADDR': PASS
+anchor '0x00800000': PASS
+
+FULL CONTENT
+00001: #! armcc -E
+00002: 
+00003: #define RAM_BASE                0x00100000
+00004: #define RAM_LIMIT               0x00130000
+00005: #define EM_START                0x00128000
+00006: #define EM_END                  0x00129dc6
+00007: #define ROM_CODE_ZI_BASE        0x0012f5cc
+00008: #define ISR_JUMP_TABLE_SIZE     0x100
+00009: #define FLASH_MAPPED_ADDR       0x00800000
+00010: #define IMAGE_OFFSET_IN_FLASH   0x3000
+00011: 
+00012: #define IMAGE_BASE_IN_FLASH     ((FLASH_MAPPED_ADDR)+(IMAGE_OFFSET_IN_FLASH))
+00013: 
+00014: 
+00015: LR_FLASH IMAGE_BASE_IN_FLASH{
+00016:     RAM_CODE RAM_BASE{
+00017:         *(RESET, +First)
+00018:         *(jump_table_area)
+00019:     }
+00020: 	RAM_KERNEL +0{
+00021:         *(kernel_data_section)
+00022:     }
+00023:     RAM_CODE_2 +0 {
+00024:         *(n_xip_section)
+00025:         *(n_xip_variable)
+00026:         SEGGER_RTT*(+RO)
+00027:         bx_dbg.o(+RO)
+00028: 		lld_sleep.o(+RO)
+00029:         ;*(:gdef:main)
+00030:         ;*(+RO)
+00031:         *(+RW)
+00032:     }
+00033: 
+00034: 
+00035:     FLASH_CODE IMAGE_BASE_IN_FLASH + ImageLength(RAM_CODE) + ImageLength(RAM_CODE_2) + ImageLength(RAM_KERNEL) {
+00036:         *(InRoot$$Sections)
+00037:         *(xip_section)
+00038:         *(+RO)
+00039: 
+00040:     }
+00041:     
+00042:     BSS ImageLimit(RAM_CODE_2)
+00043:     {
+00044:         *(+ZI)
+00045:     }
+00046:     HEAP_STACK +0 UNINIT
+00047:     {
+00048:         *(HEAP)
+00049:         *(STACK)
+00050:     } 
+00051:     ScatterAssert(ImageLimit(HEAP_STACK)<=EM_START)
+00052:     SECTION_RTT AlignExpr(EM_END,0x4) {
+00053:         *(SECTION_RTT, +First)
+00054:     }
+00055:     RWIP_ENV +0
+00056:     {
+00057:         rwip.o(+ZI)
+00058:     }
+00059:     RTOS_ZI_ENV +0
+00060:     {
+00061:         os_bridge.o(+ZI)
+00062:         ble_task.o(+ZI)
+00063:         osapp_task.o(+ZI)
+00064:         task_init.o(+ZI)
+00065:         timers.o(+ZI)
+00066:         tasks.o(+ZI)
+00067:     }
+00068:     DBG_LOG_ZI_ENV +0
+00069:     {
+00070:         SEGGER_RTT.o(+ZI)
+00071:         bx_dbg.o(+ZI)
+00072:     }
+00073:     BOOT_PARAMS +0 UNINIT{
+00074:         *(boot_tunnel)
+00075:     }
+00076:     RAM_UNLOADED +0 EMPTY 4
+00077:     {
+00078:     }
+00079:     ScatterAssert(ImageLimit(RAM_UNLOADED)<=ROM_CODE_ZI_BASE)
+00080:     
+00081: }
+
+====================================================================================================================
+FILE: base_startup
+path: reference/bluex-sdk3-v3.3.8-20250117/examples/base/base/code/startup_apollo00_ble.s
+status: present
+size: 7910
+sha256: 612aba7cbb33d47087cd1899e7c59b9ebe2d8237f0e203018179d9476b50022c
+lines: 222
+anchor '__Vectors': PASS
+anchor 'Reset_Handler': PASS
+
+matched windows: 2
+
+--- lines 38..191 ---
+00038: ;//-------- <<< Use Configuration Wizard in Context Menu >>> ------------------
+00039: ;*/
+00040: 
+00041: 
+00042: ; <h> Stack Configuration
+00043: ;   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
+00044: ; </h>
+00045: 
+00046: Stack_Size      EQU     0x00001000
+00047: 
+00048:                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
+00049: Stack_Mem       SPACE   Stack_Size
+00050: __initial_sp
+00051: 
+00052: 
+00053: 
+00054: ; <h> Heap Configuration
+00055: ;   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
+00056: ; </h>
+00057: 
+00058: Heap_Size       EQU     0x00000100
+00059: 
+00060:                 AREA    HEAP, NOINIT, READWRITE, ALIGN=3
+00061: __heap_base
+00062: Heap_Mem        SPACE   Heap_Size
+00063: __heap_limit
+00064: 
+00065: 
+00066:                 PRESERVE8
+00067:                 THUMB
+00068: 
+00069: 
+00070: ; Vector Table Mapped to Address 0 at Reset
+00071: 
+00072:                 AREA    RESET, DATA, READONLY
+00073:                 EXPORT  __Vectors
+00074:                 EXPORT  __Vectors_End
+00075:                 EXPORT  __Vectors_Size
+00076: 
+00077: __Vectors       DCD     __initial_sp              ; Top of Stack
+00078:                 DCD     Reset_Handler             ; Reset Handler
+00079:                 DCD     NMI_Handler               ; NMI Handler
+00080:                 DCD     HardFault_Handler         ; Hard Fault Handler
+00081:                 DCD     0                         ; Reserved
+00082:                 DCD     0                         ; Reserved
+00083:                 DCD     0                         ; Reserved
+00084:                 DCD     0                         ; Reserved
+00085:                 DCD     0                         ; Reserved
+00086:                 DCD     0                         ; Reserved
+00087:                 DCD     0                         ; Reserved
+00088:                 DCD     SVC_Handler               ; SVCall Handler
+00089:                 DCD     0                         ; Reserved
+00090:                 DCD     0                         ; Reserved
+00091:                 DCD     PendSV_Handler            ; PendSV Handler
+00092:                 DCD     SysTick_Handler           ; SysTick Handler
+00093: 
+00094:                 ; External Interrupts
+00095: 
+00096:                 DCD     WDT_IRQHandler
+00097:                 DCD     BLE_LP_IRQHandler
+00098:                 DCD     BLE_MAC_IRQHandler
+00099:                 DCD    	RTC_IRQHandler
+00100:                 DCD     EXT_INTR_IRQHandler
+00101:                 DCD     ECC_IRQHandler
+00102:                 DCD     DMAC_IRQHandler
+00103:                 DCD     QSPI_IRQHandler
+00104:                 DCD     SPIM0_IRQHandler
+00105:                 DCD     SPIM1_IRQHandler
+00106:                 DCD     SPIS_IRQHandler
+00107:                 DCD     UART0_IRQHandler
+00108:                 DCD     UART1_IRQHandler
+00109:                 DCD     IIC0_IRQHandler
+00110:                 DCD     IIC1_IRQHandler
+00111:                 DCD     GPIO_IRQHandler
+00112:                 DCD     TIMER_IRQHandler
+00113:                 DCD     SFT_IRQHandler
+00114:                 DCD     PGSPY_IRQHandler               
+00115:                 
+00116:                 
+00117: __Vectors_End
+00118: 
+00119: __Vectors_Size  EQU     __Vectors_End - __Vectors
+00120: 
+00121:                 AREA    |xip_section|, CODE, READONLY
+00122: 
+00123: 
+00124: ; Reset Handler
+00125: 
+00126: Reset_Handler   PROC
+00127:                 EXPORT  Reset_Handler             [WEAK]
+00128:                 IMPORT  SystemInit
+00129:                 IMPORT  __main
+00130:                 LDR     R4, =SystemInit
+00131:                 BLX     R4
+00132:                 LDR     R4, =__main
+00133:                 BX      R4
+00134:                 ENDP
+00135: 
+00136:             AREA    |.text.Default_Handler|, CODE, READONLY
+00137: 
+00138: ; Dummy Exception Handlers (infinite loops which can be modified)
+00139: 
+00140: Default_Handler PROC
+00141:                 EXPORT  NMI_Handler                     [WEAK]
+00142:                 EXPORT  HardFault_Handler               [WEAK]
+00143:                 EXPORT  SVC_Handler                     [WEAK]
+00144:                 EXPORT  PendSV_Handler                  [WEAK]
+00145:                 EXPORT  SysTick_Handler                 [WEAK]
+00146:                 
+00147:                 EXPORT  WDT_IRQHandler                  [WEAK]
+00148:                 EXPORT  BLE_LP_IRQHandler               [WEAK]
+00149:                 EXPORT  BLE_MAC_IRQHandler              [WEAK]
+00150:                 EXPORT  RTC_IRQHandler                  [WEAK]
+00151:                 EXPORT  EXT_INTR_IRQHandler             [WEAK]
+00152:                 EXPORT  ECC_IRQHandler                  [WEAK]
+00153:                 EXPORT  DMAC_IRQHandler                 [WEAK]
+00154:                 EXPORT  QSPI_IRQHandler                 [WEAK]
+00155:                 EXPORT  SPIM0_IRQHandler                [WEAK]
+00156:                 EXPORT  SPIM1_IRQHandler                [WEAK]
+00157:                 EXPORT  SPIS_IRQHandler                 [WEAK]
+00158:                 EXPORT  UART0_IRQHandler                [WEAK]
+00159:                 EXPORT  UART1_IRQHandler                [WEAK]
+00160:                 EXPORT  IIC0_IRQHandler                 [WEAK]
+00161:                 EXPORT  IIC1_IRQHandler                 [WEAK]
+00162:                 EXPORT  GPIO_IRQHandler                 [WEAK]
+00163:                 EXPORT  TIMER_IRQHandler                [WEAK]
+00164:                 EXPORT  SFT_IRQHandler                  [WEAK]
+00165:                 EXPORT  PGSPY_IRQHandler                [WEAK]
+00166: NMI_Handler
+00167: HardFault_Handler
+00168: SVC_Handler
+00169: PendSV_Handler
+00170: SysTick_Handler
+00171: WDT_IRQHandler
+00172: BLE_LP_IRQHandler
+00173: BLE_MAC_IRQHandler
+00174: RTC_IRQHandler
+00175: EXT_INTR_IRQHandler
+00176: ECC_IRQHandler
+00177: DMAC_IRQHandler
+00178: QSPI_IRQHandler
+00179: SPIM0_IRQHandler
+00180: SPIM1_IRQHandler
+00181: SPIS_IRQHandler
+00182: UART0_IRQHandler
+00183: UART1_IRQHandler
+00184: IIC0_IRQHandler
+00185: IIC1_IRQHandler
+00186: GPIO_IRQHandler
+00187: TIMER_IRQHandler
+00188: SFT_IRQHandler
+00189: PGSPY_IRQHandler
+00190:                 B       .
+00191:                 ENDP
+
+--- lines 203..222 ---
+00203: 
+00204:                 ELSE
+00205: 
+00206:                 IMPORT  __use_two_region_memory
+00207:                 EXPORT  __user_initial_stackheap
+00208: 
+00209: __user_initial_stackheap PROC
+00210:                 LDR     R0, =  Heap_Mem
+00211:                 LDR     R1, =(Stack_Mem + Stack_Size)
+00212:                 LDR     R2, = (Heap_Mem +  Heap_Size)
+00213:                 LDR     R3, = Stack_Mem
+00214:                 BX      LR
+00215:                 ENDP
+00216: 
+00217:                 ALIGN
+00218: 
+00219:                 ENDIF
+00220: 
+00221: 
+00222:                 END
+
+====================================================================================================================
+SECONDARY NOTIFICATION REFERENCES
+
+led_profile_db: examples/demo/ble_led_control/code/profile/user_profile.c
+sha256: 8fcd2c0d9db39cda3cae250eb4d77906c0cccf733508e060c49e8253daf9b30a
+matched windows: 1
+--- lines 318..353 ---
+00318: 
+00319: 
+00320: void add_user_profile(void)
+00321: {
+00322:     struct user_db_cfg* db_cfg;
+00323: 
+00324:     struct gapm_profile_task_add_cmd *req = KE_MSG_ALLOC_DYN(GAPM_PROFILE_TASK_ADD_CMD,
+00325:                                                   TASK_GAPM, TASK_APP,
+00326:                                                   gapm_profile_task_add_cmd, sizeof(struct user_db_cfg));
+00327: 
+00328:     req->operation = GAPM_PROFILE_TASK_ADD;
+00329:     req->sec_lvl = PERM(SVC_AUTH, NO_AUTH);
+00330:     req->prf_task_id = TASK_ID_USER;
+00331:     req->app_task = TASK_APP;
+00332:     req->start_hdl = 0;
+00333: 
+00334:     db_cfg = (struct user_db_cfg* ) req->param;
+00335:     db_cfg->features = USER_ALL_SUP;
+00336: 
+00337:     ke_msg_send(req);
+00338: }
+00339: 
+00340: 
+00341: /*
+00342:  * GLOBAL VARIABLE DEFINITIONS
+00343:  ****************************************************************************************
+00344:  */
+00345: 
+00346: /// GLPS Task interface required by profile manager
+00347: const struct prf_task_cbs user_itf =
+00348: {
+00349:         (prf_init_fnct) user_init,
+00350:         user_destroy,
+00351:         user_create,
+00352:         user_cleanup,
+00353: };
+
+led_profile_task: examples/demo/ble_led_control/code/profile/user_profile_task.c
+sha256: 717d703a5a52ccabdfb0aa0d49250aab66653520786ef03245a427e4af8d1722
+matched windows: 3
+--- lines 57..94 ---
+00057:  * @param[in] param Pointer to the parameters of the message.
+00058:  * @param[in] dest_id ID of the receiving task instance (probably unused).
+00059:  * @param[in] src_id ID of the sending task instance.
+00060:  * @return If the message was consumed or not.
+00061:  ****************************************************************************************
+00062:  */
+00063: static int gattc_write_req_ind_handler( ke_msg_id_t const msgid,
+00064:                                         struct gattc_write_req_ind * param,
+00065:                                         ke_task_id_t const dest_id,
+00066:                                         ke_task_id_t const src_id )
+00067: {
+00068: //    bxsh_logln("user gattc_write_req_ind_handler");
+00069:     uint8_t state  = ke_state_get( dest_id );
+00070:     if( state == USER_PROFILE_IDLE ) {
+00071:         uint8_t status = GAP_ERR_NO_ERROR;
+00072:         struct gattc_write_cfm * cfm;
+00073: 
+00074:         //Send write response
+00075:         cfm = KE_MSG_ALLOC( GATTC_WRITE_CFM, src_id, dest_id, gattc_write_cfm );
+00076:         cfm->handle = param->handle;
+00077:         cfm->status = status;
+00078:         ke_msg_send( cfm );
+00079: 
+00080:         static u8 rec_buf[20];
+00081:         memcpy( rec_buf, param->value, param->length );
+00082:         if( rec_buf[0] == 0xff ) {
+00083:             if( rec_buf[1] == 0x01 ) { //led on
+00084:                 bxd_gpio_write( BX_GPIOA, 2, 0 );
+00085:                 
+00086:             } else if( rec_buf[1] == 0x00 ) { //len off
+00087:                 bxd_gpio_write( BX_GPIOA, 2, 1 );
+00088: 
+00089:             }
+00090: 
+00091:         }
+00092: 
+00093:     }
+00094:     return ( KE_MSG_CONSUMED );
+--- lines 113..140 ---
+00113: {
+00114: //    bxsh_logln("user gattc_read_req_ind_handler");
+00115:     ke_state_t state = ke_state_get( dest_id );
+00116: 
+00117:     if( state == USER_PROFILE_IDLE ) {
+00118:         // Send value to peer device.
+00119:         struct gattc_read_cfm * cfm = KE_MSG_ALLOC_DYN( GATTC_READ_CFM, src_id, dest_id, gattc_read_cfm, 1 );
+00120:         cfm->handle = param->handle;
+00121:         cfm->status = ATT_ERR_NO_ERROR;
+00122:         cfm->length = 1;
+00123:         cfm->value[0] = 0;
+00124:         ke_msg_send( cfm );
+00125:     }
+00126: 
+00127:     return ( KE_MSG_CONSUMED );
+00128: }
+00129: 
+00130: 
+00131: /**
+00132:  ****************************************************************************************
+00133:  * @brief Handles @ref GATTC_CMP_EVT for GATTC_NOTIFY and GATT_INDICATE message meaning
+00134:  * that Measurement notification/indication has been correctly sent to peer device
+00135:  *
+00136:  *
+00137:  * @param[in] msgid     Id of the message received.
+00138:  * @param[in] param     Pointer to the parameters of the message.
+00139:  * @param[in] dest_id   ID of the receiving task instance
+00140:  * @param[in] src_id    ID of the sending task instance.
+--- lines 153..168 ---
+00153:  * GLOBAL VARIABLE DEFINITIONS
+00154:  ****************************************************************************************
+00155:  */
+00156: 
+00157: /// Default State handlers definition
+00158: const struct ke_msg_handler user_default_handler[] = {
+00159:     {GATTC_WRITE_REQ_IND,                 ( ke_msg_func_t ) gattc_write_req_ind_handler},
+00160:     {GATTC_READ_REQ_IND,                  ( ke_msg_func_t ) gattc_read_req_ind_handler},
+00161:     {GATTC_CMP_EVT,                       ( ke_msg_func_t ) gattc_cmp_evt_handler},
+00162: };
+00163: 
+00164: /// Specifies the message handlers that are common to all states.
+00165: const struct ke_state_handler userp_default_handler = KE_STATE_HANDLER( user_default_handler );
+00166: 
+00167: 
+00168: /// @} GLPSTASK
+
+report_profile_db: examples/demo/ble_report/code/profile/user_profile.c
+sha256: 3c7ebfeafc15288145c82b42ec5af46daf9422b9b89fb9f7ab73bf51535d7c22
+matched windows: 0
+
+report_profile_task: examples/demo/ble_report/code/profile/user_profile_task.c
+sha256: 2afdcfefbcd3345b548c884ab63d1ee87c0423212a1a452fbef3427ed0cf42ed
+matched windows: 3
+--- lines 57..96 ---
+00057:  * @param[in] param Pointer to the parameters of the message.
+00058:  * @param[in] dest_id ID of the receiving task instance (probably unused).
+00059:  * @param[in] src_id ID of the sending task instance.
+00060:  * @return If the message was consumed or not.
+00061:  ****************************************************************************************
+00062:  */
+00063: static int gattc_write_req_ind_handler(ke_msg_id_t const msgid,
+00064:                                       struct gattc_write_req_ind *param,
+00065:                                       ke_task_id_t const dest_id,
+00066:                                       ke_task_id_t const src_id)
+00067: {
+00068: //    bxsh_logln("user gattc_write_req_ind_handler");
+00069:     uint8_t state  = ke_state_get(dest_id);
+00070:     if(state == USER_PROFILE_IDLE)
+00071:     {
+00072:         uint8_t status = GAP_ERR_NO_ERROR;
+00073:         struct gattc_write_cfm * cfm;
+00074: 
+00075:         //Send write response
+00076:         cfm = KE_MSG_ALLOC(GATTC_WRITE_CFM, src_id, dest_id, gattc_write_cfm);
+00077:         cfm->handle = param->handle;
+00078: //				bx_logln("handle=%d",param->handle);
+00079:         cfm->status = status;
+00080:         ke_msg_send(cfm);
+00081:         
+00082:     }
+00083:     return (KE_MSG_CONSUMED);
+00084: }
+00085: 
+00086: 
+00087: /**
+00088:  ****************************************************************************************
+00089:  * @brief Handles reception of the read request from peer device
+00090:  *
+00091:  * @param[in] msgid Id of the message received (probably unused).
+00092:  * @param[in] param Pointer to the parameters of the message.
+00093:  * @param[in] dest_id ID of the receiving task instance (probably unused).
+00094:  * @param[in] src_id ID of the sending task instance.
+00095:  * @return If the message was consumed or not.
+00096:  ****************************************************************************************
+--- lines 103..130 ---
+00103: //    bxsh_logln("user gattc_read_req_ind_handler");
+00104:     ke_state_t state = ke_state_get(dest_id);
+00105: 
+00106:     if(state == USER_PROFILE_IDLE)
+00107:     {
+00108:         // Send value to peer device.
+00109:         struct gattc_read_cfm* cfm = KE_MSG_ALLOC_DYN(GATTC_READ_CFM, src_id, dest_id, gattc_read_cfm, 1);
+00110:         cfm->handle = param->handle;
+00111:         cfm->status = ATT_ERR_NO_ERROR;
+00112:         cfm->length = 1;
+00113:         cfm->value[0] = 0; 
+00114:         ke_msg_send(cfm);
+00115:     }
+00116: 
+00117:     return (KE_MSG_CONSUMED);
+00118: }
+00119: 
+00120: 
+00121: /**
+00122:  ****************************************************************************************
+00123:  * @brief Handles @ref GATTC_CMP_EVT for GATTC_NOTIFY and GATT_INDICATE message meaning
+00124:  * that Measurement notification/indication has been correctly sent to peer device
+00125:  *
+00126:  *
+00127:  * @param[in] msgid     Id of the message received.
+00128:  * @param[in] param     Pointer to the parameters of the message.
+00129:  * @param[in] dest_id   ID of the receiving task instance
+00130:  * @param[in] src_id    ID of the sending task instance.
+--- lines 144..159 ---
+00144:  ****************************************************************************************
+00145:  */
+00146: 
+00147: /// Default State handlers definition
+00148: const struct ke_msg_handler user_default_handler[] =
+00149: {
+00150:     {GATTC_WRITE_REQ_IND,                 (ke_msg_func_t) gattc_write_req_ind_handler},
+00151:     {GATTC_READ_REQ_IND,                  (ke_msg_func_t) gattc_read_req_ind_handler},
+00152:     {GATTC_CMP_EVT,                       (ke_msg_func_t) gattc_cmp_evt_handler},
+00153: };
+00154: 
+00155: /// Specifies the message handlers that are common to all states.
+00156: const struct ke_state_handler userp_default_handler = KE_STATE_HANDLER(user_default_handler);
+00157: 
+00158: 
+00159: /// @} GLPSTASK
+
+report_ble: examples/demo/ble_report/code/ble.c
+sha256: 90d1574cdd8ebe31ce61ab3cfaf9b98ca86224f91dfb13f14fe6f74d0281e9c5
+matched windows: 6
+--- lines 63..188 ---
+00063: 
+00064:     struct gapm_start_advertise_cmd * adv_cmd = KE_MSG_ALLOC( GAPM_START_ADVERTISE_CMD,
+00065:             TASK_GAPM, TASK_APP,
+00066:             gapm_start_advertise_cmd );
+00067:     
+00068:     * adv_cmd = * adv_data;
+00069:     ke_msg_send( adv_cmd );
+00070: }
+00071: 
+00072: 
+00073: /** ---------------------------------------------------------------------------
+00074:  * @brief   :
+00075:  * @note    :
+00076:  * @param   :
+00077:  * @retval  :
+00078: -----------------------------------------------------------------------------*/
+00079: void ble_advertising_stop( void )
+00080: {
+00081:     struct gapm_cancel_cmd * cmd = KE_MSG_ALLOC( GAPM_CANCEL_CMD, TASK_GAPM, TASK_APP, gapm_cancel_cmd );
+00082: 
+00083:     cmd->operation = GAPM_CANCEL;
+00084:     ke_msg_send( cmd );
+00085: }
+00086: 
+00087: 
+00088: /** ---------------------------------------------------------------------------
+00089:  * @brief   :
+00090:  * @note    :
+00091:  * @param   :
+00092:  * @retval  :
+00093: -----------------------------------------------------------------------------*/
+00094: void ble_disconnect( void )
+00095: {
+00096:     struct gapc_disconnect_cmd * discon_cmd = KE_MSG_ALLOC( GAPC_DISCONNECT_CMD, TASK_GAPC, TASK_APP, gapc_disconnect_cmd );
+00097: 
+00098:     discon_cmd->operation = GAPC_DISCONNECT;
+00099:     discon_cmd->reason = CO_ERROR_REMOTE_USER_TERM_CON;
+00100: 
+00101:     ke_msg_send( discon_cmd );
+00102: }
+00103: 
+00104: /** ---------------------------------------------------------------------------
+00105:  * @brief   :
+00106:  * @note    :
+00107:  * @param   :
+00108:  * @retval  :
+00109: -----------------------------------------------------------------------------*/
+00110: void ble_update_con_param( struct gapc_conn_param * conn_param )
+00111: {
+00112:     // Prepare the GAPC_PARAM_UPDATE_CMD message
+00113:     struct gapc_param_update_cmd * cmd = KE_MSG_ALLOC( GAPC_PARAM_UPDATE_CMD,TASK_GAPC, TASK_APP,gapc_param_update_cmd );
+00114: 
+00115:     cmd->operation  = GAPC_UPDATE_PARAMS;
+00116:     cmd->intv_min   = conn_param->intv_min;
+00117:     cmd->intv_max   = conn_param->intv_max;
+00118:     cmd->latency    = conn_param->latency;
+00119:     cmd->time_out   = conn_param->time_out;
+00120: 
+00121:     // not used by a slave device
+00122:     cmd->ce_len_min = 0xFFFF;
+00123:     cmd->ce_len_max = 0xFFFF;
+00124: 
+00125:     // Send the message
+00126:     ke_msg_send( cmd );
+00127: }
+00128: 
+00129: /** ---------------------------------------------------------------------------
+00130:  * @brief   :
+00131:  * @note    :
+00132:  * @param   :
+00133:  * @retval  :
+00134: -----------------------------------------------------------------------------*/
+00135: void ble_send_data_notify(u8 *data,u8 length,u16 handle)
+00136: {
+00137:     struct gattc_send_evt_cmd * notify_cmd = KE_MSG_ALLOC_DYN( GATTC_SEND_EVT_CMD,
+00138: 											TASK_GATTC, TASK_APP,
+00139: 											gattc_send_evt_cmd,length);
+00140: 
+00141:     static u16 notify_seq_num = 0;
+00142:     notify_cmd->operation = GATTC_NOTIFY;
+00143:     notify_cmd->seq_num = notify_seq_num++;
+00144:     notify_cmd->length = length;
+00145:     notify_cmd->handle = handle;
+00146: 
+00147:     memcpy( notify_cmd->value,data, length );
+00148: 		
+00149:     ke_msg_send( notify_cmd );
+00150: }
+00151: 
+00152: /** ---------------------------------------------------------------------------
+00153:  * @brief   :
+00154:  * @note    :
+00155:  * @param   :
+00156:  * @retval  :
+00157: -----------------------------------------------------------------------------*/
+00158: void ble_send_data_indicate(u8 *data,u8 length,u16 handle)
+00159: {
+00160:     struct gattc_send_evt_cmd * indicate_cmd = KE_MSG_ALLOC_DYN( GATTC_SEND_EVT_CMD,
+00161: 											TASK_GATTC, TASK_APP,
+00162: 											gattc_send_evt_cmd,length);
+00163: 
+00164:     static u16 notify_seq_num = 0;
+00165:     indicate_cmd->operation = GATTC_INDICATE;
+00166:     indicate_cmd->seq_num = notify_seq_num++;
+00167:     indicate_cmd->length = length;
+00168:     indicate_cmd->handle = handle;
+00169: 
+00170:     memcpy( indicate_cmd->value,data, length );
+00171: 		
+00172:     ke_msg_send( indicate_cmd );
+00173: }
+00174: /* exported variables --------------------------------------------------------*/
+00175: /** ---------------------------------------------------------------------------
+00176:  * @brief   :
+00177:  * @note    :
+00178:  * @param   :
+00179:  * @retval  :
+00180: -----------------------------------------------------------------------------*/
+00181: static uint8_t appm_get_handler( const struct ke_state_handler * handler_list,
+00182:                                  ke_msg_id_t msgid,
+00183:                                  void * param,
+00184:                                  ke_task_id_t src_id )
+00185: {
+00186:     uint8_t counter;
+00187: 
+00188:     for ( counter = handler_list->msg_cnt; 0 < counter; counter-- ) {
+--- lines 210..289 ---
+00210:         ke_task_id_t const src_id )
+00211: {
+00212:     ASSERT_ERR( ke_state_get( dest_id ) == APP_INIT );
+00213:     struct gapm_reset_cmd * cmd = KE_MSG_ALLOC( GAPM_RESET_CMD,
+00214:                                   TASK_GAPM, TASK_APP,
+00215:                                   gapm_reset_cmd );
+00216:     cmd->operation = GAPM_RESET;
+00217:     ke_msg_send( cmd );
+00218:     return ( KE_MSG_CONSUMED );
+00219: }
+00220: 
+00221: /** ---------------------------------------------------------------------------
+00222:  * @brief   :
+00223:  * @note    :
+00224:  * @param   :
+00225:  * @retval  :
+00226: -----------------------------------------------------------------------------*/
+00227: static int gapm_cmp_evt_handler( ke_msg_id_t const msgid,
+00228:                                  struct gapm_cmp_evt const * param,
+00229:                                  ke_task_id_t const dest_id,
+00230:                                  ke_task_id_t const src_id )
+00231: {
+00232:     switch( param->operation ) {
+00233:         case ( GAPM_RESET ): {
+00234:             if( param->status == GAP_ERR_NO_ERROR ) {
+00235:                 struct gapm_set_dev_config_cmd * cmd = KE_MSG_ALLOC( GAPM_SET_DEV_CONFIG_CMD,
+00236:                                                        TASK_GAPM, TASK_APP,
+00237:                                                        gapm_set_dev_config_cmd );
+00238:                 app_set_dev_cfg(cmd);
+00239:                 ke_msg_send( cmd );
+00240:                 ke_msg_send_basic( BKT_MSG_CREAT_TIMER, TASK_BX_KERNEL_TIMER, TASK_BX_KERNEL_TIMER );
+00241:             } else {
+00242:                 ASSERT_ERR( 0 );
+00243:             }
+00244:         }
+00245:         break;
+00246:         case ( GAPM_PROFILE_TASK_ADD ): {
+00247:             struct gapm_gen_rand_nb_cmd * cmd = KE_MSG_ALLOC( GAPM_GEN_RAND_NB_CMD,
+00248:                                                 TASK_GAPM, TASK_APP,
+00249:                                                 gapm_gen_rand_nb_cmd );
+00250:             cmd->operation   = GAPM_GEN_RAND_NB;
+00251:             app_env.rand_cnt = 1;
+00252:             ke_msg_send( cmd );
+00253:         }
+00254:         break;
+00255: 
+00256:         case ( GAPM_GEN_RAND_NB ) : {
+00257:             if ( app_env.rand_cnt == 1 ) {
+00258:                 app_env.rand_cnt++;
+00259:                 struct gapm_gen_rand_nb_cmd * cmd = KE_MSG_ALLOC( GAPM_GEN_RAND_NB_CMD,
+00260:                                                     TASK_GAPM, TASK_APP,
+00261:                                                     gapm_gen_rand_nb_cmd );
+00262:                 cmd->operation = GAPM_GEN_RAND_NB;
+00263:                 ke_msg_send( cmd );
+00264:             } else {
+00265:                 struct gapm_set_irk_cmd * cmd = KE_MSG_ALLOC( GAPM_SET_IRK_CMD,
+00266:                                                 TASK_GAPM, TASK_APP,
+00267:                                                 gapm_set_irk_cmd );
+00268: 
+00269:                 app_env.rand_cnt = 0;
+00270:                 cmd->operation = GAPM_SET_IRK;
+00271:                 memcpy( &cmd->irk.key[0], &app_env.loc_irk[0], KEY_LEN );
+00272: 
+00273:                 ke_msg_send( cmd );
+00274:             }
+00275:         }
+00276:         break;
+00277: 
+00278:         case ( GAPM_SET_IRK ): {
+00279:             app_env.rand_cnt = 0;
+00280: 
+00281:             if ( !app_add_svc() ) {
+00282:                 ke_state_set(TASK_APP, APP_READY);
+00283:                 
+00284:                 app_on_ble_ready();
+00285:             }
+00286:         }
+00287:         break;
+00288: 
+00289:         case ( GAPM_SET_DEV_CONFIG ): {
+--- lines 322..373 ---
+00322:         struct gapc_get_dev_info_req_ind const * param,
+00323:         ke_task_id_t const dest_id,
+00324:         ke_task_id_t const src_id )
+00325: {
+00326:     switch( param->req ) {
+00327:         case GAPC_DEV_NAME: {
+00328:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC_DYN( GAPC_GET_DEV_INFO_CFM,
+00329:                                                  src_id, dest_id,
+00330:                                                  gapc_get_dev_info_cfm, APP_DEVICE_NAME_MAX_LEN );
+00331: 
+00332:             cfm->req = param->req;
+00333:             cfm->info.name.length = app_get_dev_name( cfm->info.name.value );
+00334:             ke_msg_send( cfm );
+00335:         }
+00336:         break;
+00337: 
+00338:         case GAPC_DEV_APPEARANCE: {
+00339:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_GET_DEV_INFO_CFM,
+00340:                                                  src_id, dest_id,
+00341:                                                  gapc_get_dev_info_cfm );
+00342:             cfm->req = param->req;
+00343:             cfm->info.appearance=0;
+00344:             ke_msg_send( cfm );
+00345:         }
+00346:         break;
+00347: 
+00348:         case GAPC_DEV_SLV_PREF_PARAMS: {
+00349:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_GET_DEV_INFO_CFM,
+00350:                                                  src_id, dest_id,
+00351:                                                  gapc_get_dev_info_cfm );
+00352:             cfm->req = param->req;            
+00353:             cfm->info.slv_params.con_intv_min = 8;
+00354:             cfm->info.slv_params.con_intv_max = 10;
+00355:             cfm->info.slv_params.slave_latency = 0;
+00356:             cfm->info.slv_params.conn_timeout = 200;
+00357:             ke_msg_send( cfm );
+00358:         }
+00359:         break;
+00360: 
+00361:         default:
+00362:             break;
+00363:     }
+00364: 
+00365: 
+00366:     return ( KE_MSG_CONSUMED );
+00367: }
+00368: 
+00369: /** ---------------------------------------------------------------------------
+00370:  * @brief   :
+00371:  * @note    :
+00372:  * @param   :
+00373:  * @retval  :
+--- lines 379..401 ---
+00379: {
+00380:     // Set Device configuration
+00381:     struct gapc_set_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_SET_DEV_INFO_CFM, src_id, dest_id,
+00382:                                          gapc_set_dev_info_cfm );
+00383:     cfm->status = GAP_ERR_REJECTED;
+00384:     cfm->req = param->req;
+00385:     ke_msg_send( cfm );
+00386: 
+00387:     return ( KE_MSG_CONSUMED );
+00388: }
+00389: 
+00390: /** ---------------------------------------------------------------------------
+00391:  * @brief   :
+00392:  * @note    :
+00393:  * @param   :
+00394:  * @retval  :
+00395: -----------------------------------------------------------------------------*/
+00396: static int gapc_connection_req_ind_handler( ke_msg_id_t const msgid,
+00397:         struct gapc_connection_req_ind const * param,
+00398:         ke_task_id_t const dest_id,
+00399:         ke_task_id_t const src_id )
+00400: {
+00401:     app_env.conidx = KE_IDX_GET( src_id );
+--- lines 406..428 ---
+00406: 
+00407:         struct gapc_connection_cfm * cfm = KE_MSG_ALLOC( GAPC_CONNECTION_CFM,
+00408:                                            KE_BUILD_ID( TASK_GAPC, app_env.conidx ), TASK_APP,
+00409:                                            gapc_connection_cfm );
+00410: 
+00411:         cfm->auth=GAP_AUTH_REQ_NO_MITM_NO_BOND;
+00412:         ke_msg_send( cfm );
+00413:     } else {
+00414:         app_on_ble_connect_fail();
+00415:     }
+00416: 
+00417:     return ( KE_MSG_CONSUMED );
+00418: }
+00419: /** ---------------------------------------------------------------------------
+00420:  * @brief   :
+00421:  * @note    :
+00422:  * @param   :
+00423:  * @retval  :
+00424: -----------------------------------------------------------------------------*/
+00425: static int gapc_cmp_evt_handler( ke_msg_id_t const msgid,
+00426:                                  struct gapc_cmp_evt const * param,
+00427:                                  ke_task_id_t const dest_id,
+00428:                                  ke_task_id_t const src_id )
+--- lines 527..561 ---
+00527:     struct gapc_param_update_cfm * cfm = KE_MSG_ALLOC( GAPC_PARAM_UPDATE_CFM,
+00528:                                          src_id, dest_id,
+00529:                                          gapc_param_update_cfm );
+00530:     cfm->accept = 0x01;
+00531:     cfm->ce_len_max = 0xffff;
+00532:     cfm->ce_len_min = 0xffff;
+00533:     ke_msg_send( cfm );
+00534: }
+00535: 
+00536: /** ---------------------------------------------------------------------------
+00537:  * @brief   :
+00538:  * @note    :
+00539:  * @param   :
+00540:  * @retval  :
+00541: -----------------------------------------------------------------------------*/
+00542: static int gattc_cmp_evt_handler( ke_msg_id_t const msgid, struct gattc_cmp_evt const * param,
+00543:                                   ke_task_id_t const dest_id, ke_task_id_t const src_id )
+00544: {
+00545: 		if(param->operation == GATTC_INDICATE){
+00546: 				bx_logln("indicate success");
+00547: 		}
+00548:     return ( KE_MSG_CONSUMED );
+00549: }
+00550: 
+00551: 
+00552: const struct ke_msg_handler appm_default_state[] = {
+00553:     {KE_MSG_DEFAULT_HANDLER,    ( ke_msg_func_t )msg_default_handler},
+00554:     {GAPM_DEVICE_READY_IND,     ( ke_msg_func_t )gapm_device_ready_ind_handler},
+00555:     {GAPM_CMP_EVT,              ( ke_msg_func_t )gapm_cmp_evt_handler},
+00556:     {GAPC_GET_DEV_INFO_REQ_IND, ( ke_msg_func_t )gapc_get_dev_info_req_ind_handler},
+00557:     {GAPC_SET_DEV_INFO_REQ_IND, ( ke_msg_func_t )gapc_set_dev_info_req_ind_handler},
+00558:     {GAPC_CONNECTION_REQ_IND,   ( ke_msg_func_t )gapc_connection_req_ind_handler},
+00559:     {GAPC_CMP_EVT,              ( ke_msg_func_t )gapc_cmp_evt_handler},
+00560:     {GAPC_DISCONNECT_IND,       ( ke_msg_func_t )gapc_disconnect_ind_handler},
+00561:     {GAPM_PROFILE_ADDED_IND,    ( ke_msg_func_t )gapm_profile_added_ind_handler},
+
+speed_profile_db: examples/demo/ble_speed_test/code/user_profile.c
+sha256: 9f44b2cc2e954387dd09d649c3cbfaceadbe065d2ec5fff852413001ba9e14be
+matched windows: 1
+--- lines 339..376 ---
+00339: 
+00340: 
+00341: void app_user_add_profile(void)
+00342: {
+00343:     struct user_db_cfg* db_cfg;
+00344:     // Allocate the DISS_CREATE_DB_REQ
+00345:     struct gapm_profile_task_add_cmd *req = KE_MSG_ALLOC_DYN(GAPM_PROFILE_TASK_ADD_CMD,
+00346:                                                   TASK_GAPM, TASK_APP,
+00347:                                                   gapm_profile_task_add_cmd, sizeof(struct user_db_cfg));
+00348:     // Fill message
+00349:     req->operation = GAPM_PROFILE_TASK_ADD;
+00350:     req->sec_lvl = PERM(SVC_AUTH, NO_AUTH);
+00351:     req->prf_task_id = TASK_ID_USER;
+00352:     req->app_task = TASK_APP;
+00353:     req->start_hdl = 0;
+00354: 
+00355:     // Set parameters
+00356:     db_cfg = (struct user_db_cfg* ) req->param;
+00357:     db_cfg->features = USER_ALL_SUP;
+00358: 
+00359:     // Send the message
+00360:     ke_msg_send(req);
+00361: }
+00362: 
+00363: /*
+00364:  * GLOBAL VARIABLE DEFINITIONS
+00365:  ****************************************************************************************
+00366:  */
+00367: 
+00368: /// GLPS Task interface required by profile manager
+00369: const struct prf_task_cbs user_itf =
+00370: {
+00371:         (prf_init_fnct) user_init,
+00372:         user_destroy,
+00373:         user_create,
+00374:         user_cleanup,
+00375: };
+00376: 
+
+speed_profile_task: examples/demo/ble_speed_test/code/user_profile_task.c
+sha256: f4e4c037710aba7aeae9a93cb3bd1c64661f288a9b29ac6eb24d0365f00d6ef2
+matched windows: 3
+--- lines 55..100 ---
+00055:  * @param[in] param Pointer to the parameters of the message.
+00056:  * @param[in] dest_id ID of the receiving task instance (probably unused).
+00057:  * @param[in] src_id ID of the sending task instance.
+00058:  * @return If the message was consumed or not.
+00059:  ****************************************************************************************
+00060:  */
+00061: static int gattc_write_req_ind_handler(ke_msg_id_t const msgid,
+00062:                                       struct gattc_write_req_ind *param,
+00063:                                       ke_task_id_t const dest_id,
+00064:                                       ke_task_id_t const src_id)
+00065: {
+00066: //    bxsh_logln("user gattc_write_req_ind_handler");
+00067:     uint8_t state  = ke_state_get(dest_id);
+00068:     if(state == USER_PROFILE_IDLE)
+00069:     {
+00070:         
+00071:         if( param->value[0] == 0x0F ) {
+00072:             bx_logln("start send");
+00073:             uint8_t data = 1;
+00074:             ble_notify(&data,1,param->handle+2);
+00075:             write_handle =  param->handle+2;
+00076:         }
+00077:         
+00078:         uint8_t status = GAP_ERR_NO_ERROR;
+00079:         struct gattc_write_cfm * cfm;
+00080:         //Send write response
+00081:         cfm = KE_MSG_ALLOC(GATTC_WRITE_CFM, src_id, dest_id, gattc_write_cfm);
+00082:         cfm->handle = param->handle;
+00083:         cfm->status = status;
+00084:         ke_msg_send(cfm);
+00085: 		
+00086:     }
+00087:     return (KE_MSG_CONSUMED);
+00088: }
+00089: 
+00090: 
+00091: /**
+00092:  ****************************************************************************************
+00093:  * @brief Handles reception of the read request from peer device
+00094:  *
+00095:  * @param[in] msgid Id of the message received (probably unused).
+00096:  * @param[in] param Pointer to the parameters of the message.
+00097:  * @param[in] dest_id ID of the receiving task instance (probably unused).
+00098:  * @param[in] src_id ID of the sending task instance.
+00099:  * @return If the message was consumed or not.
+00100:  ****************************************************************************************
+--- lines 107..134 ---
+00107: //    bxsh_logln("user gattc_read_req_ind_handler");
+00108:     ke_state_t state = ke_state_get(dest_id);
+00109: 
+00110:     if(state == USER_PROFILE_IDLE)
+00111:     {
+00112:         // Send value to peer device.
+00113:         struct gattc_read_cfm* cfm = KE_MSG_ALLOC_DYN(GATTC_READ_CFM, src_id, dest_id, gattc_read_cfm, 1);
+00114:         cfm->handle = param->handle;
+00115:         cfm->status = ATT_ERR_NO_ERROR;
+00116:         cfm->length = 1;
+00117:         cfm->value[0] = 0; 
+00118:         ke_msg_send(cfm);
+00119:     }
+00120: 
+00121:     return (KE_MSG_CONSUMED);
+00122: }
+00123: 
+00124: 
+00125: /**
+00126:  ****************************************************************************************
+00127:  * @brief Handles @ref GATTC_CMP_EVT for GATTC_NOTIFY and GATT_INDICATE message meaning
+00128:  * that Measurement notification/indication has been correctly sent to peer device
+00129:  *
+00130:  *
+00131:  * @param[in] msgid     Id of the message received.
+00132:  * @param[in] param     Pointer to the parameters of the message.
+00133:  * @param[in] dest_id   ID of the receiving task instance
+00134:  * @param[in] src_id    ID of the sending task instance.
+--- lines 148..163 ---
+00148:  ****************************************************************************************
+00149:  */
+00150: 
+00151: /// Default State handlers definition
+00152: const struct ke_msg_handler user_default_handler[] =
+00153: {
+00154:     {GATTC_WRITE_REQ_IND,                 (ke_msg_func_t) gattc_write_req_ind_handler},
+00155:     {GATTC_READ_REQ_IND,                  (ke_msg_func_t) gattc_read_req_ind_handler},
+00156:     {GATTC_CMP_EVT,                       (ke_msg_func_t) gattc_cmp_evt_handler},
+00157: };
+00158: 
+00159: /// Specifies the message handlers that are common to all states.
+00160: const struct ke_state_handler userp_default_handler = KE_STATE_HANDLER(user_default_handler);
+00161: 
+00162: 
+00163: /// @} GLPSTASK
+
+speed_ble: examples/demo/ble_speed_test/code/ble.c
+sha256: cd6d05d65fd08298c322ce9db94594c820761b027bc6d51a36ee556921c0ebcf
+matched windows: 6
+--- lines 63..166 ---
+00063: 
+00064:     struct gapm_start_advertise_cmd * adv_cmd = KE_MSG_ALLOC( GAPM_START_ADVERTISE_CMD,
+00065:             TASK_GAPM, TASK_APP,
+00066:             gapm_start_advertise_cmd );
+00067:     
+00068:     * adv_cmd = * adv_data;
+00069:     ke_msg_send( adv_cmd );
+00070: }
+00071: 
+00072: 
+00073: /** ---------------------------------------------------------------------------
+00074:  * @brief   :
+00075:  * @note    :
+00076:  * @param   :
+00077:  * @retval  :
+00078: -----------------------------------------------------------------------------*/
+00079: void ble_advertising_stop( void )
+00080: {
+00081:     struct gapm_cancel_cmd * cmd = KE_MSG_ALLOC( GAPM_CANCEL_CMD, TASK_GAPM, TASK_APP, gapm_cancel_cmd );
+00082: 
+00083:     cmd->operation = GAPM_CANCEL;
+00084:     ke_msg_send( cmd );
+00085: }
+00086: 
+00087: 
+00088: /** ---------------------------------------------------------------------------
+00089:  * @brief   :
+00090:  * @note    :
+00091:  * @param   :
+00092:  * @retval  :
+00093: -----------------------------------------------------------------------------*/
+00094: void ble_notify(uint8_t *data,uint8_t length,uint16_t handle)
+00095: {
+00096:     struct gattc_send_evt_cmd * notify_cmd = KE_MSG_ALLOC_DYN( GATTC_SEND_EVT_CMD,
+00097:            TASK_GATTC, TASK_APP,
+00098:            gattc_send_evt_cmd,length);
+00099: 
+00100:     static uint16_t notify_seq_num = 0;
+00101:     notify_cmd->operation = GATTC_NOTIFY;
+00102:     notify_cmd->seq_num = notify_seq_num++;
+00103:     notify_cmd->length = length;
+00104:     notify_cmd->handle = handle;
+00105: 
+00106:     memcpy( notify_cmd->value,data, length );
+00107:   
+00108:     ke_msg_send( notify_cmd );
+00109: }
+00110: 
+00111: 
+00112: /** ---------------------------------------------------------------------------
+00113:  * @brief   :
+00114:  * @note    :
+00115:  * @param   :
+00116:  * @retval  :
+00117: -----------------------------------------------------------------------------*/
+00118: void ble_disconnect( void )
+00119: {
+00120:     struct gapc_disconnect_cmd * discon_cmd = KE_MSG_ALLOC( GAPC_DISCONNECT_CMD, TASK_GAPC, TASK_APP, gapc_disconnect_cmd );
+00121: 
+00122:     discon_cmd->operation = GAPC_DISCONNECT;
+00123:     discon_cmd->reason = CO_ERROR_REMOTE_USER_TERM_CON;
+00124: 
+00125:     ke_msg_send( discon_cmd );
+00126: }
+00127: 
+00128: /** ---------------------------------------------------------------------------
+00129:  * @brief   :
+00130:  * @note    :
+00131:  * @param   :
+00132:  * @retval  :
+00133: -----------------------------------------------------------------------------*/
+00134: void ble_update_con_param( struct gapc_conn_param * conn_param )
+00135: {
+00136:     // Prepare the GAPC_PARAM_UPDATE_CMD message
+00137:     struct gapc_param_update_cmd * cmd = KE_MSG_ALLOC( GAPC_PARAM_UPDATE_CMD,TASK_GAPC, TASK_APP,gapc_param_update_cmd );
+00138: 
+00139:     cmd->operation  = GAPC_UPDATE_PARAMS;
+00140:     cmd->intv_min   = conn_param->intv_min;
+00141:     cmd->intv_max   = conn_param->intv_max;
+00142:     cmd->latency    = conn_param->latency;
+00143:     cmd->time_out   = conn_param->time_out;
+00144: 
+00145:     // not used by a slave device
+00146:     cmd->ce_len_min = 0xFFFF;
+00147:     cmd->ce_len_max = 0xFFFF;
+00148: 
+00149:     // Send the message
+00150:     ke_msg_send( cmd );
+00151: }
+00152: 
+00153: 
+00154: /* exported variables --------------------------------------------------------*/
+00155: /** ---------------------------------------------------------------------------
+00156:  * @brief   :
+00157:  * @note    :
+00158:  * @param   :
+00159:  * @retval  :
+00160: -----------------------------------------------------------------------------*/
+00161: static uint8_t appm_get_handler( const struct ke_state_handler * handler_list,
+00162:                                  ke_msg_id_t msgid,
+00163:                                  void * param,
+00164:                                  ke_task_id_t src_id )
+00165: {
+00166:     uint8_t counter;
+--- lines 190..269 ---
+00190:         ke_task_id_t const src_id )
+00191: {
+00192:     ASSERT_ERR( ke_state_get( dest_id ) == APP_INIT );
+00193:     struct gapm_reset_cmd * cmd = KE_MSG_ALLOC( GAPM_RESET_CMD,
+00194:                                   TASK_GAPM, TASK_APP,
+00195:                                   gapm_reset_cmd );
+00196:     cmd->operation = GAPM_RESET;
+00197:     ke_msg_send( cmd );
+00198:     return ( KE_MSG_CONSUMED );
+00199: }
+00200: 
+00201: /** ---------------------------------------------------------------------------
+00202:  * @brief   :
+00203:  * @note    :
+00204:  * @param   :
+00205:  * @retval  :
+00206: -----------------------------------------------------------------------------*/
+00207: static int gapm_cmp_evt_handler( ke_msg_id_t const msgid,
+00208:                                  struct gapm_cmp_evt const * param,
+00209:                                  ke_task_id_t const dest_id,
+00210:                                  ke_task_id_t const src_id )
+00211: {
+00212:     switch( param->operation ) {
+00213:         case ( GAPM_RESET ): {
+00214:             if( param->status == GAP_ERR_NO_ERROR ) {
+00215:                 struct gapm_set_dev_config_cmd * cmd = KE_MSG_ALLOC( GAPM_SET_DEV_CONFIG_CMD,
+00216:                                                        TASK_GAPM, TASK_APP,
+00217:                                                        gapm_set_dev_config_cmd );
+00218:                 app_set_dev_cfg(cmd);
+00219:                 ke_msg_send( cmd );
+00220:                 ke_msg_send_basic( BKT_MSG_CREAT_TIMER, TASK_BX_KERNEL_TIMER, TASK_BX_KERNEL_TIMER );
+00221:             } else {
+00222:                 ASSERT_ERR( 0 );
+00223:             }
+00224:         }
+00225:         break;
+00226:         case ( GAPM_PROFILE_TASK_ADD ): {
+00227:             struct gapm_gen_rand_nb_cmd * cmd = KE_MSG_ALLOC( GAPM_GEN_RAND_NB_CMD,
+00228:                                                 TASK_GAPM, TASK_APP,
+00229:                                                 gapm_gen_rand_nb_cmd );
+00230:             cmd->operation   = GAPM_GEN_RAND_NB;
+00231:             app_env.rand_cnt = 1;
+00232:             ke_msg_send( cmd );
+00233:         }
+00234:         break;
+00235: 
+00236:         case ( GAPM_GEN_RAND_NB ) : {
+00237:             if ( app_env.rand_cnt == 1 ) {
+00238:                 app_env.rand_cnt++;
+00239:                 struct gapm_gen_rand_nb_cmd * cmd = KE_MSG_ALLOC( GAPM_GEN_RAND_NB_CMD,
+00240:                                                     TASK_GAPM, TASK_APP,
+00241:                                                     gapm_gen_rand_nb_cmd );
+00242:                 cmd->operation = GAPM_GEN_RAND_NB;
+00243:                 ke_msg_send( cmd );
+00244:             } else {
+00245:                 struct gapm_set_irk_cmd * cmd = KE_MSG_ALLOC( GAPM_SET_IRK_CMD,
+00246:                                                 TASK_GAPM, TASK_APP,
+00247:                                                 gapm_set_irk_cmd );
+00248: 
+00249:                 app_env.rand_cnt = 0;
+00250:                 cmd->operation = GAPM_SET_IRK;
+00251:                 memcpy( &cmd->irk.key[0], &app_env.loc_irk[0], KEY_LEN );
+00252: 
+00253:                 ke_msg_send( cmd );
+00254:             }
+00255:         }
+00256:         break;
+00257: 
+00258:         case ( GAPM_SET_IRK ): {
+00259:             app_env.rand_cnt = 0;
+00260: 
+00261:             if ( !app_add_svc() ) {
+00262:                 ke_state_set(TASK_APP, APP_READY);
+00263:                 
+00264:                 app_on_ble_ready();
+00265:             }
+00266:         }
+00267:         break;
+00268: 
+00269:         case ( GAPM_SET_DEV_CONFIG ): {
+--- lines 302..353 ---
+00302:         struct gapc_get_dev_info_req_ind const * param,
+00303:         ke_task_id_t const dest_id,
+00304:         ke_task_id_t const src_id )
+00305: {
+00306:     switch( param->req ) {
+00307:         case GAPC_DEV_NAME: {
+00308:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC_DYN( GAPC_GET_DEV_INFO_CFM,
+00309:                                                  src_id, dest_id,
+00310:                                                  gapc_get_dev_info_cfm, APP_DEVICE_NAME_MAX_LEN );
+00311: 
+00312:             cfm->req = param->req;
+00313:             cfm->info.name.length = app_get_dev_name( cfm->info.name.value );
+00314:             ke_msg_send( cfm );
+00315:         }
+00316:         break;
+00317: 
+00318:         case GAPC_DEV_APPEARANCE: {
+00319:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_GET_DEV_INFO_CFM,
+00320:                                                  src_id, dest_id,
+00321:                                                  gapc_get_dev_info_cfm );
+00322:             cfm->req = param->req;
+00323:             cfm->info.appearance=0;
+00324:             ke_msg_send( cfm );
+00325:         }
+00326:         break;
+00327: 
+00328:         case GAPC_DEV_SLV_PREF_PARAMS: {
+00329:             struct gapc_get_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_GET_DEV_INFO_CFM,
+00330:                                                  src_id, dest_id,
+00331:                                                  gapc_get_dev_info_cfm );
+00332:             cfm->req = param->req;            
+00333:             cfm->info.slv_params.con_intv_min = 8;
+00334:             cfm->info.slv_params.con_intv_max = 10;
+00335:             cfm->info.slv_params.slave_latency = 0;
+00336:             cfm->info.slv_params.conn_timeout = 200;
+00337:             ke_msg_send( cfm );
+00338:         }
+00339:         break;
+00340: 
+00341:         default:
+00342:             break;
+00343:     }
+00344: 
+00345: 
+00346:     return ( KE_MSG_CONSUMED );
+00347: }
+00348: 
+00349: /** ---------------------------------------------------------------------------
+00350:  * @brief   :
+00351:  * @note    :
+00352:  * @param   :
+00353:  * @retval  :
+--- lines 359..381 ---
+00359: {
+00360:     // Set Device configuration
+00361:     struct gapc_set_dev_info_cfm * cfm = KE_MSG_ALLOC( GAPC_SET_DEV_INFO_CFM, src_id, dest_id,
+00362:                                          gapc_set_dev_info_cfm );
+00363:     cfm->status = GAP_ERR_REJECTED;
+00364:     cfm->req = param->req;
+00365:     ke_msg_send( cfm );
+00366: 
+00367:     return ( KE_MSG_CONSUMED );
+00368: }
+00369: 
+00370: /** ---------------------------------------------------------------------------
+00371:  * @brief   :
+00372:  * @note    :
+00373:  * @param   :
+00374:  * @retval  :
+00375: -----------------------------------------------------------------------------*/
+00376: static int gapc_connection_req_ind_handler( ke_msg_id_t const msgid,
+00377:         struct gapc_connection_req_ind const * param,
+00378:         ke_task_id_t const dest_id,
+00379:         ke_task_id_t const src_id )
+00380: {
+00381:     app_env.conidx = KE_IDX_GET( src_id );
+--- lines 386..408 ---
+00386: 
+00387:         struct gapc_connection_cfm * cfm = KE_MSG_ALLOC( GAPC_CONNECTION_CFM,
+00388:                                            KE_BUILD_ID( TASK_GAPC, app_env.conidx ), TASK_APP,
+00389:                                            gapc_connection_cfm );
+00390: 
+00391:         cfm->auth=GAP_AUTH_REQ_NO_MITM_NO_BOND;
+00392:         ke_msg_send( cfm );
+00393:     } else {
+00394:         app_on_ble_connect_fail();
+00395:     }
+00396: 
+00397:     return ( KE_MSG_CONSUMED );
+00398: }
+00399: /** ---------------------------------------------------------------------------
+00400:  * @brief   :
+00401:  * @note    :
+00402:  * @param   :
+00403:  * @retval  :
+00404: -----------------------------------------------------------------------------*/
+00405: static int gapc_cmp_evt_handler( ke_msg_id_t const msgid,
+00406:                                  struct gapc_cmp_evt const * param,
+00407:                                  ke_task_id_t const dest_id,
+00408:                                  ke_task_id_t const src_id )
+--- lines 507..529 ---
+00507:     struct gapc_param_update_cfm * cfm = KE_MSG_ALLOC( GAPC_PARAM_UPDATE_CFM,
+00508:                                          src_id, dest_id,
+00509:                                          gapc_param_update_cfm );
+00510:     cfm->accept = 0x01;
+00511:     cfm->ce_len_max = 0xffff;
+00512:     cfm->ce_len_min = 0xffff;
+00513:     ke_msg_send( cfm );
+00514: }
+00515: 
+00516: 
+00517: extern uint32_t write_handle;
+00518: static uint8_t send_data[256]={0};
+00519: uint32_t send_count=0;
+00520: /** ---------------------------------------------------------------------------
+00521:  * @brief   :
+00522:  * @note    :
+00523:  * @param   :
+00524:  * @retval  :
+00525: -----------------------------------------------------------------------------*/
+00526: static int gattc_cmp_evt_handler( ke_msg_id_t const msgid, struct gattc_cmp_evt const * param,
+00527:                                   ke_task_id_t const dest_id, ke_task_id_t const src_id )
+00528: {
+00529:       static bool first = true;
+
+====================================================================================================================
+SDK3 EXAMPLE INDEX
+
+custom_128_db: 8
+  examples/base/app_base/code/profile/user_profile.c
+  examples/demo/ble_custom_profile/code/user_profile.c
+  examples/demo/ble_led_control/code/profile/user_profile.c
+  examples/demo/ble_report/code/profile/user_profile.c
+  examples/demo/ble_speed_test/code/user_profile.c
+  examples/demo/bxa_tt/code/profile/user_profile.c
+  examples/demo/matrix_keyboard_wakeup/code/profile/user_profile.c
+  examples/demo/pwm/code/profile/user_profile.c
+
+write_handler: 7
+  examples/demo/ble_custom_profile/code/user_profile_task.c
+  examples/demo/ble_led_control/code/profile/user_profile_task.c
+  examples/demo/ble_report/code/profile/user_profile_task.c
+  examples/demo/ble_speed_test/code/user_profile_task.c
+  examples/demo/bxa_tt/code/profile/user_profile_task.c
+  examples/demo/matrix_keyboard_wakeup/code/profile/user_profile_task.c
+  examples/demo/pwm/code/profile/user_profile_task.c
+
+notify_send: 6
+  examples/demo/ble_bond/code/bxe_matrix_keyboard_wakeup.c
+  examples/demo/ble_report/code/ble.c
+  examples/demo/ble_speed_test/code/ble.c
+  examples/demo/bxa_hid/code/bxe_matrix_keyboard_wakeup.c
+  examples/demo/bxa_tt/code/app.c
+  examples/demo/matrix_keyboard_wakeup/code/bxe_matrix_keyboard_wakeup.c
+
+====================================================================================================================
+SELECTED ADAPTER MODEL
+base example:
+  examples/demo/ble_custom_profile
+
+service creation:
+  128-bit UUID arrays in SDK byte order
+  attm_svc_create_db_128
+  attribute descriptors with PERM(UUID_LEN,UUID_128)
+
+write path:
+  GATTC_WRITE_REQ_IND
+  gattc_write_req_ind_handler
+  value handle selects command-write versus data-write
+
+notify path:
+  GATTC_SEND_EVT_CMD / gattc_send_evt_cmd
+  command and data notify handles
+  CCCD state must gate notifications
+
+advertising path:
+  gapm_start_advertise_cmd
+  ble_advertising_start
+
+build path:
+  startup_apollo00_ble.s
+  user_link.txt
+  FLASH_MAPPED_ADDR 0x00800000 is generic SDK placement
+  do not substitute the accepted R02 application base yet
+
+====================================================================================================================
+SUMMARY
+required failures: 0
+source gate: PASS
+next decision: generate build-only SDK3 adapter overlay
+device action: none
